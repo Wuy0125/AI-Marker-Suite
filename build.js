@@ -152,11 +152,13 @@ const BUILD_CONFIGS = [
             'adapters/xfkj/adapter.js',
             'adapters/ruiya/selectors.js',
             'adapters/ruiya/adapter.js',
+            'adapters/aiduo/selectors.js',
+            'adapters/aiduo/adapter.js',
         ],
         header: {
             name: 'AI-Marker-Suite',
             namespace: 'https://aimarking.five-plus-one.com/',
-            description: 'AI自动批改助手，支持智学网、七天网络、好分数、五岳阅卷、阅小二、华翰云、光大阅卷、云阅卷、新教育、鑫考、鑫考(内网)、鑫考校园、润建、54学霸、九科星、慧阅卷、乐华阅卷、慧学星、粤教翔云、云阅卷(好分数)、科耘、威科姆、C30、AMEQP、海云智评、九五优评、上进教育、南昊、酷鱼、A佳教育、云阅卷(开州)、正确阅卷、精斗云、小帆智能阅卷、睿芽、恒佳等平台。自动识别答案、智能评分、自动提交！',
+            description: 'AI自动批改助手，支持智学网、七天网络、好分数、五岳阅卷、阅小二、华翰云、光大阅卷、云阅卷、新教育、鑫考、鑫考(内网)、鑫考校园、润建、54学霸、九科星、慧阅卷、乐华阅卷、慧学星、粤教翔云、云阅卷(好分数)、科耘、威科姆、C30、AMEQP、海云智评、九五优评、上进教育、南昊、酷鱼、A佳教育、云阅卷(开州)、正确阅卷、精斗云、小帆智能阅卷、睿芽、恒佳、爱多分等平台。自动识别答案、智能评分、自动提交！',
             author: '5plus1',
             match: [
                 '*://www.zhixue.com/*',
@@ -208,6 +210,10 @@ const BUILD_CONFIGS = [
                 '*://ruiya.onlyets.com/*',
                 '*://*.yuejuan51.com/*',
                 '*://yuejuan51.com/*',
+                '*://ui.eiduo.com/exam-webapp/marking/*',
+                '*://ui.xuebanyun.com/exam-webapp/marking/*',
+                '*://*.eiduo.com/exam-webapp/marking/*',
+                '*://*.xuebanyun.com/exam-webapp/marking/*',
             ],
             include: [
                 '/^https?:\/\/\\d+\\.\\d+\\.\\d+\\.\\d+:\\d+\\//',  // IP:端口 部署（光大阅卷等）

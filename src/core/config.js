@@ -3,7 +3,7 @@
 
 const SCRIPT_CONFIG = {
     /** 当前脚本版本号，修改此处即可同步更新所有引用 */
-    VERSION: '1.21.16.28',
+    VERSION: '1.21.16.29',
 
     /** 轻量级更新检查 UL（优先使用，~1KB）—— stable 渠道默认值 */
     MANIFEST_URL: 'https://auto-update.aimarking.five-plus-one.com/ota/manifest.json',
@@ -44,6 +44,9 @@ const SCRIPT_CONFIG = {
      * 运行时从远端 manifest.json 加载，此处作为构建时的数据源
      */
     CHANGELOG: {
+        '1.21.16.29': [
+            '【新平台】新增爱多分（eiduo.com / xuebanyun.com）主观题阅卷适配：阅卷页 exam-webapp/marking 取题块图、按「满分N」识别分数框、写回页面模型后点「提交分数」，取消输入即交卷的定时器，批量打分与回评不自动批改',
+        ],
         '1.21.16.28': [
             '【修复】AMEQP 偶发「批改已暂停」：换卷检测与答卷校验改用考号级试卷标识（同卷图片抖动不再误判，弱信号不再提前触发），消除换卷窗口竞态（#281）',
         ],

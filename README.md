@@ -5,7 +5,7 @@
 [![版本](https://img.shields.io/badge/version-1.21.16.18-blue.svg)](https://github.com/five-plus-one/AI-Marker-Suite)
 [![许可证](https://img.shields.io/badge/license-GPL--3.0-green.svg)](LICENSE)
 
-**📖 使用文档**：[aimarking.five-plus-one.com](https://aimarking.five-plus-one.com) — 安装教程、配置指南、模式详解、34 个平台适配说明、常见问题
+**📖 使用文档**：[aimarking.five-plus-one.com](https://aimarking.five-plus-one.com) — 安装教程、配置指南、模式详解、平台适配说明、常见问题
 
 ---
 
@@ -19,9 +19,11 @@
 | 每道题都要手动输分、点提交 | **全自动**：识别 → 打分 → 填入 → 提交 → 下一份 |
 | 改完想回头看某份试卷 | **评阅历史**，一键回看，支持导出 HTML/CSV/JSON/材料包ZIP |
 
-**支持平台（34 个）**：智学网、七天网络、好分数、五岳阅卷、阅小二、华翰云、光大阅卷、云阅卷、新教育、润建学情、54学霸、九科星(考试+作业)、慧阅卷、乐华阅卷、鑫考、慧学星、粤教翔云、云阅卷(好分数)、科耘阅卷、光大阅卷V2、威科姆（悦卷通）、C30教育云、AMEQP网上评卷、海云智评、鑫考(内网)、九五优评、上进教育服务云、南昊AI教学提分、鑫考校园、酷鱼网、A佳教育、云阅卷(开州)、正确阅卷、精斗云(大数据精准教学)。
+**支持平台（35 个）**：智学网、七天网络、好分数、五岳阅卷、阅小二、华翰云、光大阅卷、云阅卷、新教育、润建学情、54学霸、九科星(考试+作业)、慧阅卷、乐华阅卷、鑫考、慧学星、粤教翔云、云阅卷(好分数)、科耘阅卷、光大阅卷V2、威科姆（悦卷通）、C30教育云、AMEQP网上评卷、海云智评、鑫考(内网)、九五优评、上进教育服务云、南昊AI教学提分、鑫考校园、酷鱼网、A佳教育、云阅卷(开州)、正确阅卷、精斗云(大数据精准教学)、爱多分（eiduo.com / xuebanyun.com）。
 
 > 📋 [完整平台列表与各平台适配说明](https://aimarking.five-plus-one.com/platforms/) · 如果您有适配需求，请[联系我](https://r-l.ink/contact)
+
+爱多分与学伴云是同一套主观题阅卷页（`ui` 子域的 `/exam-webapp/marking/index`）。教师自己登录后再打开阅卷；脚本不代填账号。批量打分和回评不会自动批改。现场核对步骤见 [docs/platforms/aiduo.md](docs/platforms/aiduo.md)。
 
 ![](./img/1.png)
 
@@ -200,6 +202,11 @@
 ## 更新日志
 
 > 完整更新日志见 [更新日志页面](https://aimarking.five-plus-one.com/changelog)
+
+### v1.21.16.29
+
+**新平台**
+- 新增爱多分（eiduo.com / xuebanyun.com）主观题阅卷适配。教师登录后在阅卷页取题块图、识别「满分N」、填入分数并点「提交分数」。说明与现场核对见 [docs/platforms/aiduo.md](docs/platforms/aiduo.md)
 
 ### v1.21.16 (2026-10-23)
 
