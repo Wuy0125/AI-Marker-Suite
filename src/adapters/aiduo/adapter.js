@@ -11,6 +11,8 @@
 //   交卷只发生在 submitGrade 点「提交分数」时，避免填一半就提交、或提交两次跳卷。
 // - 分数对不上、框是 ng-invalid、或读不到模型时，填分/提交都返回 false。
 // - 批量打分把一个分数打到多张卡上，检测直接拒绝。
+// - 抽查页、?check=true、页头回评标记都不进入自动批改。核心只拿 isRegradeMode
+//   跳过方案切换，不会藏按钮，所以检测、填分、提交三处都要自己拒绝。
 // - 换卷只认答题图路径变化（去掉 query）。输入框变空不算换卷。拿不准就超时返回 false。
 
 const AIDUO_TIMING = {
@@ -49,12 +51,20 @@ const AiduoAdapter = {
             console.log('[爱多分] 当前不是阅卷页 path=', window.location.pathname);
             return false;
         }
+        if (this.isRegradeMode()) {
+            console.warn('[爱多分] 抽查或回评中，不进入自动批改');
+            return false;
+        }
         if (this._isBatchMode()) {
             console.warn('[爱多分] 批量打分开启中，不进入自动批改（一份分会打到多张卡）');
             return false;
         }
         try {
             await waitForElement(AIDUO_SELECTORS.SCORE_INPUT, AIDUO_TIMING.DETECT_TIMEOUT_MS).catch(() => null);
+            if (this.isRegradeMode()) {
+                console.warn('[爱多分] 分数框出现后进入回评，不进入自动批改');
+                return false;
+            }
             const inputs = this.getScoreInputs();
             const button = this._submitButton();
             const images = this._answerImages();
@@ -144,6 +154,10 @@ const AiduoAdapter = {
 
     fillScores(scores) {
         if (!Array.isArray(scores) || scores.length === 0) return false;
+        if (this.isRegradeMode()) {
+            console.warn('[爱多分] 抽查或回评中，拒绝填分');
+            return false;
+        }
         if (this._isBatchMode()) {
             console.warn('[爱多分] 批量打分中，拒绝填分');
             return false;
@@ -216,6 +230,10 @@ const AiduoAdapter = {
     },
 
     submitGrade() {
+        if (this.isRegradeMode()) {
+            console.warn('[爱多分] 抽查或回评中，拒绝提交');
+            return false;
+        }
         if (this._isBatchMode()) {
             console.warn('[爱多分] 批量打分中，拒绝提交');
             return false;
@@ -296,10 +314,7 @@ const AiduoAdapter = {
     },
 
     isRegradeMode() {
-        if (/\/exam-webapp\/marking\/check-index\/?$/i.test(window.location.pathname || '')) return true;
-        try {
-            if (new URLSearchParams(window.location.search || '').get('check') === 'true') return true;
-        } catch (e) { /* 忽略 */ }
+        if (aiduoIsRegradeLocation(window.location.pathname, window.location.search)) return true;
         return !!document.querySelector(AIDUO_SELECTORS.REGRADE_FLAG);
     },
 

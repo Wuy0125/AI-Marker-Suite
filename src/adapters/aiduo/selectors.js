@@ -39,6 +39,17 @@ function aiduoPathMatches(pathname) {
     return /\/exam-webapp\/marking\/(?:index|check-index)\/?$/i.test(String(pathname || ''));
 }
 
+// 抽查页和 ?check=true 是回评。仲裁 isArbitrate 仍是单份打分，不算回评。
+function aiduoIsRegradeLocation(pathname, search) {
+    if (/\/exam-webapp\/marking\/check-index\/?$/i.test(String(pathname || ''))) return true;
+    try {
+        const query = String(search || '').replace(/^\?/, '');
+        return new URLSearchParams(query).get('check') === 'true';
+    } catch (e) {
+        return false;
+    }
+}
+
 function aiduoImageKey(url) {
     if (!url || typeof url !== 'string') return '';
     const trimmed = url.trim();

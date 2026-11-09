@@ -7,12 +7,13 @@ const vm = require('vm');
 
 function loadAiduo() {
     const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'adapters', 'aiduo', 'selectors.js'), 'utf8');
-    const sandbox = { console, URL, Number, String };
+    const sandbox = { console, URL, URLSearchParams, Number, String };
     vm.createContext(sandbox);
     vm.runInContext(src + `
         this.__aiduo = {
             aiduoHostMatches,
             aiduoPathMatches,
+            aiduoIsRegradeLocation,
             aiduoImageKey,
             aiduoPaperKey,
             aiduoParseMaxScore,
@@ -45,6 +46,26 @@ test('只匹配主观题阅卷路径，不匹配登录页', () => {
     assert.equal(aiduo.aiduoPathMatches('/container/'), false);
     assert.equal(aiduo.aiduoPathMatches('/exam-webapp/exam-manage/index'), false);
     assert.equal(aiduo.aiduoPathMatches('/exam-webapp/marking/index/extra'), false);
+});
+
+test('检测、填分、提交都会拒绝回评', () => {
+    const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'adapters', 'aiduo', 'adapter.js'), 'utf8');
+    for (const name of ['detectMarkingPage', 'fillScores', 'submitGrade']) {
+        const start = src.indexOf(name + '(');
+        assert.ok(start >= 0, name);
+        const slice = src.slice(start, start + 800);
+        assert.match(slice, /this\.isRegradeMode\(\)/, name + ' 未拒绝回评');
+    }
+});
+
+test('抽查和 check=true 是回评，仲裁不是', () => {
+    assert.equal(aiduo.aiduoIsRegradeLocation('/exam-webapp/marking/check-index', ''), true);
+    assert.equal(aiduo.aiduoIsRegradeLocation('/exam-webapp/marking/check-index/', ''), true);
+    assert.equal(aiduo.aiduoIsRegradeLocation('/exam-webapp/marking/index', '?check=true'), true);
+    assert.equal(aiduo.aiduoIsRegradeLocation('/exam-webapp/marking/index', '?examId=1&check=true'), true);
+    assert.equal(aiduo.aiduoIsRegradeLocation('/exam-webapp/marking/index', '?isArbitrate=true'), false);
+    assert.equal(aiduo.aiduoIsRegradeLocation('/exam-webapp/marking/index', ''), false);
+    assert.equal(aiduo.aiduoIsRegradeLocation('/exam-webapp/marking/index', '?check=false'), false);
 });
 
 test('答题图身份去掉 query，并丢掉图标和 data/blob', () => {
