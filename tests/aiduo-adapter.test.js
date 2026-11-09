@@ -56,6 +56,8 @@ test('检测、填分、提交都会拒绝回评', () => {
         const slice = src.slice(start, start + 800);
         assert.match(slice, /this\.isRegradeMode\(\)/, name + ' 未拒绝回评');
     }
+    assert.match(src, /toggleAutoGrading = aiduoGuardedToggle/);
+    assert.match(src, /data-aiduo-regrade-hidden/);
 });
 
 test('抽查和 check=true 是回评，仲裁不是', () => {

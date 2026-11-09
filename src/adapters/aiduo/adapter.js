@@ -12,7 +12,8 @@
 // - 分数对不上、框是 ng-invalid、或读不到模型时，填分/提交都返回 false。
 // - 批量打分把一个分数打到多张卡上，检测直接拒绝。
 // - 抽查页、?check=true、页头回评标记都不进入自动批改。核心只拿 isRegradeMode
-//   跳过方案切换，不会藏按钮，所以检测、填分、提交三处都要自己拒绝。
+//   跳过方案切换，不会藏按钮，所以检测、填分、提交都要拒绝；已经出现的批改按钮
+//   在回评期间藏起来，点击也不开始批改。
 // - 换卷只认答题图路径变化（去掉 query）。输入框变空不算换卷。拿不准就超时返回 false。
 
 const AIDUO_TIMING = {
@@ -320,6 +321,32 @@ const AiduoAdapter = {
 
     onPageLoad() {
         console.log('[爱多分] 页面加载完成', window.location.hostname, window.location.pathname);
+        this._syncRegradeUi();
+    },
+
+    // 批改按钮的样式带 display:flex !important，普通 display 盖不住。
+    // 只动带 data-aiduo-regrade-hidden 的按钮，离开回评后还原。
+    _syncRegradeUi() {
+        const block = this.isRegradeMode();
+        const btn = document.querySelector('.ai-grade-btn');
+        if (btn) {
+            if (block) {
+                btn.setAttribute('data-aiduo-regrade-hidden', '1');
+                btn.style.setProperty('display', 'none', 'important');
+                btn.disabled = true;
+            } else if (btn.getAttribute('data-aiduo-regrade-hidden') === '1') {
+                btn.removeAttribute('data-aiduo-regrade-hidden');
+                btn.style.removeProperty('display');
+                btn.disabled = false;
+            }
+        }
+        if (!block || !window.aiGradingState || !window.aiGradingState.isRunning) return;
+        window.aiGradingState.isRunning = false;
+        window.aiGradingState.isPaused = true;
+        if (window.aiGradingState.abortController) {
+            try { window.aiGradingState.abortController.abort(); } catch (e) { /* 中止失败不影响拒绝填分 */ }
+        }
+        console.warn('[爱多分] 进入抽查或回评，已停止自动批改');
     },
 
     _answerImages() {
@@ -427,5 +454,23 @@ const AiduoAdapter = {
 
 if (AiduoAdapter.shouldInitialize()) {
     window.__AI_MARKER_ADAPTER__ = AiduoAdapter;
+    // toggleAutoGrading 是函数声明，创建按钮时才会把当时的引用绑到 onclick。
+    // 这里先换成回评拦截版，后出现的按钮点下去也不会开始批改。
+    if (typeof toggleAutoGrading === 'function' && !toggleAutoGrading.__aiduoPatched) {
+        const aiduoOriginalToggle = toggleAutoGrading;
+        const aiduoGuardedToggle = function() {
+            if (AiduoAdapter.isRegradeMode()) {
+                console.warn('[爱多分] 抽查或回评中，不开始自动批改');
+                AiduoAdapter._syncRegradeUi();
+                return;
+            }
+            return aiduoOriginalToggle.apply(this, arguments);
+        };
+        aiduoGuardedToggle.__aiduoPatched = true;
+        toggleAutoGrading = aiduoGuardedToggle;
+    }
+    setInterval(() => {
+        try { AiduoAdapter._syncRegradeUi(); } catch (e) { /* 页面拆掉时忽略 */ }
+    }, 400);
     console.log(`[爱多分] 适配器已注册 host=${location.hostname} path=${location.pathname}`);
 }
