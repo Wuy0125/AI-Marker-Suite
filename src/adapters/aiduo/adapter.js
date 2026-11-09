@@ -325,28 +325,80 @@ const AiduoAdapter = {
     },
 
     // 批改按钮的样式带 display:flex !important，普通 display 盖不住。
-    // 只动带 data-aiduo-regrade-hidden 的按钮，离开回评后还原。
+    // 只动带 data-aiduo-regrade-hidden 的按钮，离开回评后还原成可点的「AI 批改」。
     _syncRegradeUi() {
         const block = this.isRegradeMode();
         const btn = document.querySelector('.ai-grade-btn');
-        if (btn) {
-            if (block) {
+        if (block) {
+            if (btn) {
                 btn.setAttribute('data-aiduo-regrade-hidden', '1');
                 btn.style.setProperty('display', 'none', 'important');
                 btn.disabled = true;
-            } else if (btn.getAttribute('data-aiduo-regrade-hidden') === '1') {
-                btn.removeAttribute('data-aiduo-regrade-hidden');
-                btn.style.removeProperty('display');
-                btn.disabled = false;
+            }
+            this._haltGradingForRegrade();
+            return;
+        }
+        this._regradeHalted = false;
+        if (btn && btn.getAttribute('data-aiduo-regrade-hidden') === '1') {
+            btn.removeAttribute('data-aiduo-regrade-hidden');
+            btn.style.removeProperty('display');
+            btn.disabled = false;
+            this._resetGradeButtonIdle(btn);
+        }
+    },
+
+    // 对齐 stopAutoGrading：清运行态、按钮文案、提交框和流式面板。
+    // 另外清掉自动恢复标记，避免回评结束后刷新又接着批。
+    _haltGradingForRegrade() {
+        const state = window.aiGradingState;
+        const btn = document.querySelector('.ai-grade-btn');
+        const dialog = document.getElementById('auto-submit-dialog');
+        const running = !!(state && state.isRunning);
+        const label = btn ? String(btn.textContent || '').replace(/\s/g, '') : '';
+        const chromeDirty = !!(btn && (
+            btn.classList.contains('running')
+            || btn.classList.contains('paused')
+            || btn.classList.contains('unattended')
+            || btn.classList.contains('trial')
+            || (label && label !== 'AI批改')
+        ));
+        if (this._regradeHalted && !running && !dialog && !chromeDirty) return;
+
+        if (dialog && dialog.countdownTimer) clearInterval(dialog.countdownTimer);
+        if (typeof stopAutoGrading === 'function' && state) {
+            try { stopAutoGrading(); } catch (e) { /* 下面再补一次按钮和标记 */ }
+        } else if (state) {
+            state.isRunning = false;
+            state.isPaused = false;
+            state.errorRetryCount = 0;
+            if (state.abortController) {
+                try { state.abortController.abort(); } catch (e) { /* 中止失败不影响拒绝填分 */ }
+            }
+            if (dialog) dialog.remove();
+            if (typeof hideStreamPanel === 'function') {
+                try { hideStreamPanel(); } catch (e) { /* 面板可能尚未创建 */ }
             }
         }
-        if (!block || !window.aiGradingState || !window.aiGradingState.isRunning) return;
-        window.aiGradingState.isRunning = false;
-        window.aiGradingState.isPaused = true;
-        if (window.aiGradingState.abortController) {
-            try { window.aiGradingState.abortController.abort(); } catch (e) { /* 中止失败不影响拒绝填分 */ }
+        if (state) state.countdownPaused = false;
+        try {
+            sessionStorage.removeItem('ai-grading-auto-resume');
+            sessionStorage.removeItem('ai-grading-retry-count');
+        } catch (e) { /* 隐私模式可能禁掉 sessionStorage */ }
+        const freshBtn = document.querySelector('.ai-grade-btn');
+        if (freshBtn) {
+            this._resetGradeButtonIdle(freshBtn);
+            freshBtn.setAttribute('data-aiduo-regrade-hidden', '1');
+            freshBtn.style.setProperty('display', 'none', 'important');
+            freshBtn.disabled = true;
         }
+        this._regradeHalted = true;
         console.warn('[爱多分] 进入抽查或回评，已停止自动批改');
+    },
+
+    _resetGradeButtonIdle(btn) {
+        if (!btn) return;
+        btn.textContent = 'AI 批改';
+        btn.classList.remove('running', 'paused', 'unattended', 'trial');
     },
 
     _answerImages() {
@@ -371,11 +423,29 @@ const AiduoAdapter = {
     },
 
     _isBatchMode() {
-        const el = document.querySelector(AIDUO_SELECTORS.BATCH_DASHBOARD);
-        if (!el) return false;
-        const style = window.getComputedStyle ? window.getComputedStyle(el) : null;
-        if (style && (style.display === 'none' || style.visibility === 'hidden')) return false;
-        return el.getClientRects().length > 0;
+        const submitVm = this._submitComponent();
+        return aiduoIsBatchMode({
+            isMultScore: !!((submitVm && submitVm.isMultScore === true) || this._pageMultScore()),
+            hasSubmitMult: !!document.querySelector(AIDUO_SELECTORS.BATCH_PANEL),
+        });
+    },
+
+    // exam-index 上的 isMultScore 才是批量打分开关；打分板 data.length>1 不算。
+    _pageMultScore() {
+        const host = document.querySelector('exam-index');
+        const list = this._contextList(host && host.__ngContext__);
+        if (!list) return false;
+        for (let i = 0; i < list.length; i++) {
+            const item = list[i];
+            if (item && item.isMultScore === true && typeof item.multTopic === 'function') return true;
+        }
+        return false;
+    },
+
+    _contextList(ctx) {
+        if (Array.isArray(ctx)) return ctx;
+        if (ctx && Array.isArray(ctx.lView)) return ctx.lView;
+        return null;
     },
 
     _submitComponent() {
@@ -390,7 +460,7 @@ const AiduoAdapter = {
     // 这份 Angular 构建里，节点上的 __ngContext__ 要么直接是 LView 数组，
     // 要么是 { lView }。组件实例就挂在这一层，不再往子视图里钻，避免环。
     _findSubmitVm(ctx) {
-        const list = Array.isArray(ctx) ? ctx : (ctx && Array.isArray(ctx.lView) ? ctx.lView : null);
+        const list = this._contextList(ctx);
         if (!list) return null;
         for (let i = 0; i < list.length; i++) {
             const item = list[i];

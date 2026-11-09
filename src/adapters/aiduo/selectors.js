@@ -16,7 +16,8 @@
 // 答题图：.img-wrap / .img-content / .imgs 里的 img，src 来自题块 imgUrls。
 //         平台自己用「?」前的路径当图身份（dealImages），换卷比较必须去掉 query。
 // 回评：header .status.status-remark（文案「当前处于回评模式」）。
-// 批量打分：.submit-dashboard.multi。一份分打到多张卡上，本适配器不进入该模式。
+// 批量打分：exam-submit 上 isMultScore 为真，模板 ngIf 出 .submit-mult。
+// .submit-dashboard.multi 只是「分数框多于一个」时的浮动打分板，不是批量打分。
 
 const AIDUO_SELECTORS = {
     ROOT: 'exam-index',
@@ -24,9 +25,18 @@ const AIDUO_SELECTORS = {
     SCORE_INPUT: 'exam-submit .submit-bd .item input',
     SUBMIT_BUTTON_TEXT: '提交分数',
     ANSWER_IMAGE: '.img-wrap img[src], .img-content img[src], .imgs img[src]',
-    BATCH_DASHBOARD: 'exam-submit .submit-dashboard.multi',
+    // ngIf=isMultScore。一份分经 multTopic({batchScore}) 打到多张卡上。
+    BATCH_PANEL: 'exam-submit .submit-mult',
     REGRADE_FLAG: 'header .status.status-remark, .status.status-remark',
 };
+
+// 多题浮动打分板（.submit-dashboard.multi，data.length>1）不是批量打分。
+function aiduoIsBatchMode(signals) {
+    if (!signals || typeof signals !== 'object') return false;
+    if (signals.isMultScore === true) return true;
+    if (signals.hasSubmitMult === true) return true;
+    return false;
+}
 
 function aiduoHostMatches(hostname) {
     const host = String(hostname || '').toLowerCase().replace(/\.+$/, '');

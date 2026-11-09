@@ -14,6 +14,7 @@ function loadAiduo() {
             aiduoHostMatches,
             aiduoPathMatches,
             aiduoIsRegradeLocation,
+            aiduoIsBatchMode,
             aiduoImageKey,
             aiduoPaperKey,
             aiduoParseMaxScore,
@@ -58,6 +59,27 @@ test('检测、填分、提交都会拒绝回评', () => {
     }
     assert.match(src, /toggleAutoGrading = aiduoGuardedToggle/);
     assert.match(src, /data-aiduo-regrade-hidden/);
+    assert.match(src, /stopAutoGrading\(\)/);
+    assert.match(src, /ai-grading-auto-resume/);
+    assert.match(src, /AI 批改/);
+    for (const name of ['detectMarkingPage', 'fillScores', 'submitGrade']) {
+        const start = src.indexOf(name + '(');
+        const slice = src.slice(start, start + 900);
+        assert.match(slice, /this\._isBatchMode\(\)/, name + ' 未拒绝批量打分');
+    }
+    assert.match(src, /aiduoIsBatchMode\(/);
+    assert.match(src, /AIDUO_SELECTORS\.BATCH_PANEL/);
+    const selectors = fs.readFileSync(path.join(__dirname, '..', 'src', 'adapters', 'aiduo', 'selectors.js'), 'utf8');
+    assert.match(selectors, /BATCH_PANEL: 'exam-submit \.submit-mult'/);
+    assert.equal(src.includes('BATCH_DASHBOARD'), false);
+});
+
+test('批量打分看 isMultScore 和 .submit-mult，不看多题打分板', () => {
+    assert.equal(aiduo.aiduoIsBatchMode({ isMultScore: true }), true);
+    assert.equal(aiduo.aiduoIsBatchMode({ hasSubmitMult: true }), true);
+    assert.equal(aiduo.aiduoIsBatchMode({ hasMultiDashboard: true }), false);
+    assert.equal(aiduo.aiduoIsBatchMode({ isMultScore: false, hasSubmitMult: false, hasMultiDashboard: true }), false);
+    assert.equal(aiduo.aiduoIsBatchMode(null), false);
 });
 
 test('抽查和 check=true 是回评，仲裁不是', () => {
