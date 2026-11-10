@@ -437,6 +437,20 @@ const AiduoAdapter = {
         this._pauseIfUnsafe();
     },
 
+    // 本份答卷送给 AI 时开始扫描。出分、失败、暂停、离开都收起。
+    // 收起扫描线不放开平台提交：1.21.18.7 的确认按住仍然有效。
+    onGradingStart() {
+        try { AiduoScanLine.start(); } catch (e) { console.warn('[爱多分] 扫描线启动失败', e); }
+    },
+
+    onScoresReady() {
+        try { AiduoScanLine.stop(); } catch (e) { console.warn('[爱多分] 扫描线停止失败', e); }
+    },
+
+    onGradingEnd() {
+        try { AiduoScanLine.stop(); } catch (e) { console.warn('[爱多分] 扫描线停止失败', e); }
+    },
+
     _pauseIfUnsafe() {
         const regrade = this.isRegradeMode();
         const batch = this._isBatchMode();
@@ -739,6 +753,9 @@ const AiduoAdapter = {
         if (typeof window.addEventListener === 'function') {
             window.addEventListener('hashchange', watch);
             window.addEventListener('popstate', watch);
+            window.addEventListener('pagehide', () => {
+                try { AiduoScanLine.stop(); } catch (e) { /* 页面正在卸载 */ }
+            });
         }
         if (typeof window.setInterval === 'function') window.setInterval(watch, 1000);
     } catch (e) {

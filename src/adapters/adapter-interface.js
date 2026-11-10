@@ -89,6 +89,9 @@
  * === 可选钩子 ===
  * @property {() => void} [onPageLoad] - init() 完成后的平台特定页面设置
  * @property {() => void} [onGradingComplete] - 每次批改循环完成后的回调
+ * @property {() => void} [onGradingStart] - 本份答卷开始送给 AI 时
+ * @property {() => void} [onScoresReady] - 本份分数已经写入页面时（尚未提交）
+ * @property {() => void} [onGradingEnd] - 本份失败、暂停、停止或离开批改页时
  * @property {boolean|(() => boolean)} [requiresManualConfirm]
  *   为真时，普通模式和试改不倒计时自动提交，等教师在弹窗里确认。
  *   无人值守仍使用自己的短倒计时。不影响其他平台。

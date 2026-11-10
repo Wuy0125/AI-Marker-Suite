@@ -163,6 +163,7 @@ function wireModel(component, inputs) {
 
 test('脚本头 match 与 include 覆盖路径前缀和 hash 路由，且不放开整站', () => {
     const src = fs.readFileSync(path.join(ROOT, 'build.js'), 'utf8');
+    assert.ok(src.includes("name: 'wuy0125爱多分适配版 AI-Marker-Suite'"), '脚本显示名应带爱多分适配前缀');
     for (const pattern of [
         '*://*.eiduo.com/*exam-webapp/marking/*',
         '*://eiduo.com/*exam-webapp/marking/*',

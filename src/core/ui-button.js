@@ -631,6 +631,7 @@ function toggleAutoGrading() {
     if (window.aiGradingState.isRunning) {
         window.aiGradingState.isPaused = true;
         window.aiGradingState.isRunning = false;
+        if (typeof notifyAdapterHook === 'function') notifyAdapterHook('onGradingEnd');
         invalidateGradingRun();
 
         // 清除无人值守模式的自动刷新标记，防止暂停后页面被自动重载
@@ -672,6 +673,7 @@ function toggleAutoGrading() {
 
 // ========== 停止打分 ==========
 function stopAutoGrading() {
+    if (typeof notifyAdapterHook === 'function') notifyAdapterHook('onGradingEnd');
     invalidateGradingRun();
     window.aiGradingState.isRunning = false;
     window.aiGradingState.isPaused = false;

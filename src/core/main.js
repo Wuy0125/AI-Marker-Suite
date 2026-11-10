@@ -229,6 +229,16 @@ function validateScoresForFill(values, ctx) {
     return true;
 }
 
+// 可选适配器钩子。没实现的平台完全不受影响。
+function notifyAdapterHook(name) {
+    try {
+        const adapter = window.__AI_MARKER_ADAPTER__;
+        if (adapter && typeof adapter[name] === 'function') adapter[name]();
+    } catch (e) {
+        console.warn('[适配器钩子] ' + name + ' 失败:', e);
+    }
+}
+
 // 填分统一汇聚点：adapter.fillScores 前置数值闸（一处收口覆盖全仓）
 function safeFillScores(adapter, scores, ctx) {
     if (!validateScoresForFill(scores, ctx)) return false;
@@ -239,6 +249,7 @@ function safeFillScores(adapter, scores, ctx) {
 // SPA 导航（如退回列表页）不销毁 DOM：OOBE 弹窗会残留、批改循环会把
 //「离开页面」误当成「所有试卷已批改完成」。离开时统一清理、中性停止
 function handleLeaveMarkingPage() {
+    notifyAdapterHook('onGradingEnd');
     invalidateGradingRun();
     // 1. 关闭新手引导弹窗
     if (typeof hideOnboardingDialog === 'function') hideOnboardingDialog();
@@ -266,6 +277,15 @@ function handleLeaveMarkingPage() {
 
 // ========== 主控流程 ==========
 async function startAutoGrading() {
+    // 嵌在函数体内：单测按函数抽取主流程时，钩子调用不依赖外部绑定。
+    function notifyAdapterHook(name) {
+        try {
+            const hookAdapter = window.__AI_MARKER_ADAPTER__;
+            if (hookAdapter && typeof hookAdapter[name] === 'function') hookAdapter[name]();
+        } catch (e) {
+            console.warn('[适配器钩子] ' + name + ' 失败:', e);
+        }
+    }
     if (!window.aiGradingState.isRunning || window.aiGradingState.isPaused) return;
     const runContext = createGradingContext();
     // 批改节奏：本卷用时计时起点（开始处理 → 提交，含随机延迟）
@@ -492,6 +512,7 @@ async function startAutoGrading() {
             showStreamPanel();
         }
 
+        notifyAdapterHook('onGradingStart');
         console.log('🤖 [诊断] 开始调用AI接口...');
         // 根据是否启用双评，选择调用方式
         const outputObservation = { upgraded: false };
@@ -584,6 +605,7 @@ async function startAutoGrading() {
                 console.warn('⚠️ [诊断] 分数填入失败，中止本次提交');
                 throw new Error('分数填入失败（分数框缺失或分数不可填），请手动输入分数后继续');
             }
+            notifyAdapterHook('onScoresReady');
             runContext.inputSnapshot = snapshotScoreInputs(adapter);
             // 传递结构化评分详情、双评信息和勤勉信息到提交对话框
             // 如果开启了空白卡检测且有范本，附带当前图的占比数据（复用之前缓存的结果）
@@ -632,6 +654,7 @@ async function startAutoGrading() {
     } catch (error) {
         // 旧轮次的失败也不能暂停新轮次或清理新轮次的界面。
         if (!isGradingContextCurrent(runContext)) return;
+        notifyAdapterHook('onGradingEnd');
         hideStreamPanel();
         if (error.message === '用户主动暂停' || error.message === '用户暂停') {
             console.log('⏸️ 请求已被暂停');
