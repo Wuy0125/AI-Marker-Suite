@@ -298,6 +298,41 @@ test('填分写入输入框和阅卷模型，并取消 0.4 到 6 秒的输入即
     assert.strictEqual(env.buttons[0].clicked, 1);
 });
 
+test('填分返回后异步排上的提交计时不得提交，确认后才放行', async () => {
+    const component = {
+        submitted: 0,
+        debounceSubmit() {
+            this.timeoutId = setTimeout(() => this.submit(), 800);
+        },
+        submit() { this.submitted += 1; },
+        data: [{ score: null, specialType: 0 }],
+        timeoutId: null,
+        isMultScore: false,
+    };
+    const input = makeInput({ placeholder: '满分10' });
+    const env = load({ inputs: [input], component, context: [component] });
+    env.sb.setTimeout = setTimeout;
+    env.sb.clearTimeout = clearTimeout;
+    input.dispatchEvent = () => { component.data[0].score = Number(input.value); };
+    assert.strictEqual(env.adapter.fillScores([6]), true);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    setTimeout(() => component.debounceSubmit(), 0);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    component.submit();
+    assert.strictEqual(component.timeoutId, null, '异步 debounce 排上的计时必须清掉');
+    assert.strictEqual(component.submitted, 0, '按住期间平台 submit 必须是空操作');
+
+    env.buttons[0].click = function () {
+        this.clicked = (this.clicked || 0) + 1;
+        component.submit();
+    };
+    assert.strictEqual(env.adapter.submitGrade(), true);
+    assert.strictEqual(env.buttons[0].clicked, 1);
+    assert.strictEqual(component.submitted, 1, '确认提交点击「提交分数」后才真正提交');
+    if (component.timeoutId != null) clearTimeout(component.timeoutId);
+});
+
 test('模型没跟上、按钮禁用、抽查回评、批量打分时拒绝点击提交', () => {
     const input = makeInput({ placeholder: '满分10', onEvent: () => {} });
     const stuck = load({ inputs: [input] });
@@ -425,4 +460,47 @@ test('普通阅卷页能认出分数框和提交按钮；抽查页和批量打�
     const batch = load({ inputs: [input], batchEl: {} });
     batch.sb.waitForElement = () => Promise.resolve(input);
     assert.strictEqual(await batch.adapter.detectMarkingPage(), false);
+});
+
+test('爱多分普通模式不倒计时自动提交，无人值守和其他平台保持原样', () => {
+    const { env, load: loadCore } = require('./_audit-harness');
+    function openDialog(mode, manualConfirm) {
+        const e = env();
+        e.state.gradingMode = mode;
+        e.state.isRunning = true;
+        if (manualConfirm) e.adapter.requiresManualConfirm = true;
+        loadCore(e, 'src/core/ui-submit-dialog.js');
+        const dialog = e.sb.showAutoSubmitDialog(6, '评语', null);
+        assert.ok(dialog, mode + ' 弹窗应出现');
+        return { e, dialog, html: String(dialog.innerHTML || '') };
+    }
+    const aiduoNormal = openDialog('normal', true);
+    assert.strictEqual(aiduoNormal.dialog.countdownTimer, undefined);
+    assert.ok(aiduoNormal.html.includes('等待教师确认'), '普通模式应等教师确认');
+    assert.ok(!aiduoNormal.html.includes('id="countdown-number"'), '普通模式不得出现倒计时');
+
+    const aiduoUnattended = openDialog('unattended', true);
+    assert.ok(aiduoUnattended.dialog.countdownTimer, '无人值守仍保留短倒计时');
+    assert.ok(aiduoUnattended.html.includes('id="countdown-number"'));
+
+    const otherNormal = openDialog('normal', false);
+    assert.ok(otherNormal.dialog.countdownTimer, '其他平台普通模式仍倒计时自动提交');
+    assert.ok(otherNormal.html.includes('id="countdown-number"'));
+});
+
+test('试改确认后只交这一份，不再等待下一份', async () => {
+    const { env, load: loadCore } = require('./_audit-harness');
+    const e = env();
+    e.state.gradingMode = 'trial';
+    e.state.isRunning = true;
+    let advanced = 0;
+    e.adapter.waitForNextPaper = async () => { advanced += 1; return true; };
+    loadCore(e, 'src/core/main.js');
+    loadCore(e, 'src/core/ui-submit-dialog.js');
+    e.sb.startAutoGrading = () => { advanced += 1; };
+    const dialog = e.sb.showAutoSubmitDialog(6, '评语', null);
+    assert.ok(dialog, '试改弹窗应出现');
+    await dialog.confirmSubmit();
+    assert.strictEqual(advanced, 0, '试改确认后不得进入下一份');
+    assert.strictEqual(e.state.isRunning, false);
 });

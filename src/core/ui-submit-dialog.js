@@ -141,6 +141,17 @@ function showPacingRestBanner(seconds) {
     });
 }
 
+function adapterRequiresManualConfirm(adapter) {
+    if (!adapter) return false;
+    try {
+        const flag = adapter.requiresManualConfirm;
+        if (typeof flag === 'function') return !!flag.call(adapter);
+        return !!flag;
+    } catch (e) {
+        return false;
+    }
+}
+
 function showAutoSubmitDialog(score, comment, subScores, extraInfo) {
     const runContext = extraInfo?.runContext || window.aiGradingState.activeRun || createGradingContext(!window.aiGradingState.isRunning);
     if (!isGradingContextCurrent(runContext)) return null;
@@ -207,6 +218,9 @@ function showAutoSubmitDialog(score, comment, subScores, extraInfo) {
     const imageUrls = runContext.imageUrls.slice();
     const isUnattended = mode === 'unattended';
     const isTrial = mode === 'trial';
+    // 爱多分这类「输入即提交」平台：普通模式和试改等教师确认，不倒计时自动交卷。
+    // 无人值守保留自己的短倒计时。其他平台不设这个钩子，行为不变。
+    const manualConfirm = !isUnattended && adapterRequiresManualConfirm(runContext.adapter);
 
     // ===== 批改节奏（实验性）=====
     // 关闭时零行为变化（普通 5s / 无人 1s）；开启后普通/无人模式在配置区间内随机延迟，试改不参与
@@ -228,7 +242,7 @@ function showAutoSubmitDialog(score, comment, subScores, extraInfo) {
     window.aiGradingState.humanPacing.lastDelayMs = pacingActive ? pacingDelaySeconds * 1000 : 0;
 
     // 填分失败/含缺分的弹窗不得自动倒计时提交（#299：无人模式 1s 倒计时曾自动提交空分）
-    const showCountdown = !isTrial && !runContext.manual && !(extraInfo && extraInfo.fillFailed);
+    const showCountdown = !isTrial && !manualConfirm && !runContext.manual && !(extraInfo && extraInfo.fillFailed);
     const showCorrectionBtn = !isUnattended;
 
     const headerLabel = isTrial ? '试改确认' : '批改完成';
@@ -938,7 +952,16 @@ function showAutoSubmitDialog(score, comment, subScores, extraInfo) {
 
 
         if (submitted) {
-            if (window.aiGradingState.isRunning && !window.aiGradingState.isPaused) {
+            // 试改只批一份：确认后停住，不再等下一份、也不再 startAutoGrading。
+            if (isTrial) {
+                window.aiGradingState.isRunning = false;
+                window.aiGradingState.isPaused = false;
+                const trialBtn = document.querySelector('.ai-grade-btn');
+                if (trialBtn) {
+                    trialBtn.textContent = 'AI 批改';
+                    trialBtn.classList.remove('running', 'paused', 'unattended', 'trial');
+                }
+            } else if (window.aiGradingState.isRunning && !window.aiGradingState.isPaused) {
                 console.log('已点击提交，正在等待下一份试卷...');
                 const oldImgUrl = window.aiGradingState.currentImageUrls[0];
 

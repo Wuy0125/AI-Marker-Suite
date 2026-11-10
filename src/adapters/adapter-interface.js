@@ -89,4 +89,7 @@
  * === 可选钩子 ===
  * @property {() => void} [onPageLoad] - init() 完成后的平台特定页面设置
  * @property {() => void} [onGradingComplete] - 每次批改循环完成后的回调
+ * @property {boolean|(() => boolean)} [requiresManualConfirm]
+ *   为真时，普通模式和试改不倒计时自动提交，等教师在弹窗里确认。
+ *   无人值守仍使用自己的短倒计时。不影响其他平台。
  */

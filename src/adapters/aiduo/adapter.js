@@ -123,8 +123,15 @@ const AiduoAdapter = {
         '*://xuebanyun.com/*exam-webapp/marking/*',
     ],
     iconUrl: 'https://www.eiduo.com/container/favicon-eiduo.ico',
+    // 普通模式和试改等教师确认。无人值守仍走核心的短倒计时。
+    requiresManualConfirm: true,
 
     _expectedScores: null,
+    _allowPlatformSubmit: false,
+    _holdActive: false,
+    _holdGeneration: 0,
+    _heldComponent: null,
+    _timerGuard: false,
 
     shouldInitialize() {
         try {
@@ -284,9 +291,12 @@ const AiduoAdapter = {
                 }
             });
         } catch (e) {
+            // 输入事件可能已经排上「输入即提交」。失败也要按住，不能让平台自己交卷。
+            this._armSubmitHold();
             console.warn('[爱多分] 填分过程异常，拒绝提交', e);
             return false;
         }
+        this._armSubmitHold();
         if (this.isRegradeMode() || this._isBatchMode()) {
             console.warn('[爱多分] 填分后进入抽查或批量打分，拒绝继续');
             return false;
@@ -366,7 +376,14 @@ const AiduoAdapter = {
             console.warn('[爱多分] 「提交分数」按钮不可用');
             return false;
         }
-        button.click();
+        // 只在这次点击期间放行。弹窗「确认提交」和教师直接点「提交分数」都会走到这里或按钮钩子。
+        this._allowPlatformSubmit = true;
+        try {
+            button.click();
+        } finally {
+            this._allowPlatformSubmit = false;
+            this._removeTimerGuard();
+        }
         console.log('[爱多分] 已点击「提交分数」');
         return true;
     },
@@ -391,6 +408,7 @@ const AiduoAdapter = {
                 if (url === candidate) hits += 1;
                 else { candidate = url; hits = 1; }
                 if (hits >= 2) {
+                    this._releaseSubmitHold();
                     this._expectedScores = null;
                     console.log('[爱多分] 换卷（答题图路径已变化）');
                     return true;
@@ -531,10 +549,147 @@ const AiduoAdapter = {
     },
 
     _cancelDebouncedSubmit() {
-        const component = this._submitComponent();
+        const component = this._heldComponent || this._submitComponent();
         if (!component || component.timeoutId == null) return;
         try { clearTimeout(component.timeoutId); } catch (e) { /* 计时器可能已被清掉 */ }
         component.timeoutId = null;
+    },
+
+    // 填分后按住平台提交，直到教师确认、下一份出现，或 debounce 窗口结束。
+    // Angular 经常在填分函数返回之后才排 debounceSubmit（微任务或 setTimeout(0)）。
+    _armSubmitHold() {
+        this._holdActive = true;
+        this._allowPlatformSubmit = false;
+        const generation = ++this._holdGeneration;
+        const component = this._submitComponent();
+        if (component) this._wrapComponent(component);
+        this._hookSubmitButton();
+        const nativeSet = this._timerNativeSet || window.setTimeout;
+        this._installTimerGuard();
+        this._cancelDebouncedSubmit();
+        const releaseTimer = nativeSet(() => {
+            if (this._holdGeneration === generation) this._releaseSubmitHold();
+        }, 7000);
+        if (releaseTimer && typeof releaseTimer.unref === 'function') releaseTimer.unref();
+    },
+
+    _releaseSubmitHold() {
+        this._holdActive = false;
+        this._allowPlatformSubmit = false;
+        this._removeTimerGuard();
+        this._unwrapComponent();
+        this._cancelDebouncedSubmit();
+    },
+
+    _wrapComponent(component) {
+        if (this._heldComponent && this._heldComponent !== component) this._unwrapComponent();
+        if (!component || typeof component.submit !== 'function') return;
+        if (component.__aiduoWrapped) {
+            this._heldComponent = component;
+            return;
+        }
+        const adapter = this;
+        const originalSubmit = component.submit;
+        const originalDebounce = component.debounceSubmit;
+        component.__aiduoOriginalSubmit = originalSubmit;
+        component.__aiduoOriginalDebounce = originalDebounce;
+        component.submit = function aiduoGuardedSubmit() {
+            if (!adapter._allowPlatformSubmit) {
+                adapter._cancelDebouncedSubmit();
+                return;
+            }
+            return originalSubmit.apply(this, arguments);
+        };
+        if (typeof originalDebounce === 'function') {
+            component.debounceSubmit = function aiduoGuardedDebounce() {
+                const result = originalDebounce.apply(this, arguments);
+                adapter._cancelDebouncedSubmit();
+                return result;
+            };
+        }
+        component.__aiduoWrapped = true;
+        this._heldComponent = component;
+    },
+
+    _unwrapComponent() {
+        const component = this._heldComponent;
+        this._heldComponent = null;
+        if (!component || !component.__aiduoWrapped) return;
+        if (typeof component.__aiduoOriginalSubmit === 'function') component.submit = component.__aiduoOriginalSubmit;
+        if (typeof component.__aiduoOriginalDebounce === 'function') component.debounceSubmit = component.__aiduoOriginalDebounce;
+        component.__aiduoWrapped = false;
+    },
+
+    _hookSubmitButton() {
+        const button = this._submitButton();
+        if (!button || button.__aiduoClickHook) return;
+        const adapter = this;
+        const originalClick = button.click;
+        if (typeof originalClick === 'function') {
+            button.click = function () {
+                const already = adapter._allowPlatformSubmit;
+                adapter._allowPlatformSubmit = true;
+                try {
+                    return originalClick.apply(this, arguments);
+                } finally {
+                    if (!already) adapter._allowPlatformSubmit = false;
+                }
+            };
+        }
+        if (typeof button.addEventListener === 'function') {
+            button.addEventListener('click', () => { adapter._allowPlatformSubmit = true; }, true);
+            button.addEventListener('click', () => { adapter._allowPlatformSubmit = false; }, false);
+        }
+        button.__aiduoClickHook = true;
+    },
+
+    _installTimerGuard() {
+        if (this._timerGuard) return;
+        const adapter = this;
+        const nativeSet = window.setTimeout;
+        const nativeClear = window.clearTimeout;
+        this._timerNativeSet = nativeSet;
+        this._timerNativeClear = nativeClear;
+        window.setTimeout = function (handler, delay) {
+            const ms = typeof delay === 'number' ? delay : 0;
+            const id = nativeSet.apply(window, arguments);
+            if (adapter._holdActive && ms >= AIDUO_DEBOUNCE_MIN_MS && ms <= AIDUO_DEBOUNCE_MAX_MS) {
+                try { nativeClear.call(window, id); } catch (e) { /* ignore */ }
+                adapter._cancelDebouncedSubmit();
+            }
+            return id;
+        };
+        this._timerGuard = true;
+        this._patchZone(true);
+    },
+
+    _removeTimerGuard() {
+        if (this._timerGuard && this._timerNativeSet) window.setTimeout = this._timerNativeSet;
+        this._timerGuard = false;
+        this._patchZone(false);
+    },
+
+    _patchZone(active) {
+        const zone = window.Zone && window.Zone.current;
+        if (!zone || typeof zone.scheduleMacroTask !== 'function') return;
+        if (active) {
+            if (zone.__aiduoOriginalSchedule) return;
+            const original = zone.scheduleMacroTask;
+            const adapter = this;
+            zone.__aiduoOriginalSchedule = original;
+            zone.scheduleMacroTask = function (source, callback, data, customSchedule, customCancel) {
+                const delay = data && typeof data === 'object' ? Number(data.delay != null ? data.delay : data.timeout) : NaN;
+                if (adapter._holdActive && /timeout/i.test(String(source || ''))
+                    && delay >= AIDUO_DEBOUNCE_MIN_MS && delay <= AIDUO_DEBOUNCE_MAX_MS) {
+                    adapter._cancelDebouncedSubmit();
+                    return { type: 'macroTask', source: source, zone: zone, runCount: 0, invoke() {}, cancelScheduleRequest() {} };
+                }
+                return original.apply(this, arguments);
+            };
+        } else if (zone.__aiduoOriginalSchedule) {
+            zone.scheduleMacroTask = zone.__aiduoOriginalSchedule;
+            zone.__aiduoOriginalSchedule = null;
+        }
     },
 
     // 平台在 input 事件里用 0.4–6 秒的 setTimeout 自动提交。填分时清掉这段计时。
