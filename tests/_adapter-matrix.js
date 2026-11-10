@@ -344,6 +344,11 @@ const ADAPTERS = [
       own: { host: 'ejt.xkw.com', path: '/' },
       near: [{ label: '近似域名 xkw.com', form: { host: 'xkw.com', path: '/' } },
              { label: '近似域名 ejt.xkw.com.cn（子域规则不得吞后缀域）', form: { host: 'ejt.xkw.com.cn', path: '/' } }] },
+    { dir: 'aiduo', id: 'aiduo', name: '爱多分阅卷',
+      own: { host: 'ui.eiduo.com', path: '/school/exam-webapp/marking/index' },
+      near: [{ label: '爱多分宿主但不是阅卷路由', form: { host: 'ui.eiduo.com', path: '/login', hash: '' } },
+             { label: '仿冒域 eiduo.com.evil.com', form: { host: 'eiduo.com.evil.com', path: '/exam-webapp/marking/index' } },
+             { label: '爱多分首页 hash 不是阅卷', form: { host: 'www.eiduo.com', path: '/', hash: '#/home' } }] },
 ];
 
 // 竞争矩阵中走「已知竞争」而非严格唯一命中断言的目录（见 bundle-competition.test.js KNOWN 块）

@@ -286,7 +286,7 @@ function createToolsPageUI() {
             </div>
             <div class="ai-tools-status-row">
                 <span class="ai-tools-status-label">支持平台</span>
-                <span class="ai-tools-status-value">34 个</span>
+                <span class="ai-tools-status-value">35 个</span>
             </div>
         </div>
 
@@ -438,6 +438,7 @@ function showAboutPanel() {
                         <span style="padding:4px 10px;background:rgba(0,0,0,0.04);border-radius:6px;font-size:12px;color:#666;">云阅卷(开州)</span>
                         <span style="padding:4px 10px;background:rgba(0,0,0,0.04);border-radius:6px;font-size:12px;color:#666;">正确阅卷</span>
                         <span style="padding:4px 10px;background:rgba(0,0,0,0.04);border-radius:6px;font-size:12px;color:#666;">精斗云(大数据精准教学)</span>
+                        <span style="padding:4px 10px;background:rgba(0,0,0,0.04);border-radius:6px;font-size:12px;color:#666;">爱多分</span>
                     </div>
                 </div>
 

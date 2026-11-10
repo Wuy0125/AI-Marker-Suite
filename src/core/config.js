@@ -3,7 +3,7 @@
 
 const SCRIPT_CONFIG = {
     /** 当前脚本版本号，修改此处即可同步更新所有引用 */
-    VERSION: '1.21.18.5',
+    VERSION: '1.21.18.6',
 
     /** 轻量级更新检查 UL（优先使用，~1KB）—— stable 渠道默认值 */
     MANIFEST_URL: 'https://auto-update.aimarking.five-plus-one.com/ota/manifest.json',
@@ -44,6 +44,9 @@ const SCRIPT_CONFIG = {
      * 运行时从远端 manifest.json 加载，此处作为构建时的数据源
      */
     CHANGELOG: {
+        '1.21.18.6': [
+            '【新平台】适配爱多分阅卷（eiduo.com / xuebanyun.com）：按主机名加路径与 hash 识别 exam-webapp 阅卷页（含路径前缀），抽查回评和批量打分不自动批改，填分取消输入即提交计时，换卷只认答题图变化',
+        ],
         '1.21.18.5': [
             '【修复】首次使用或升级时设置保存失败仍可打开批改工具，保留当前设置并支持重新保存',
         ],
