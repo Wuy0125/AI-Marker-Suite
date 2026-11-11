@@ -334,6 +334,144 @@ test('填分返回后异步排上的提交计时不得提交，确认后才放�
     if (component.timeoutId != null) clearTimeout(component.timeoutId);
 });
 
+test('表单 ngSubmit 发生在 click 冒泡之后，这次点击仍要交卷，之后的计时不能交', async () => {
+    const component = {
+        submitted: 0,
+        debounceSubmit() {
+            this.timeoutId = setTimeout(() => this.submit(), 800);
+        },
+        submit() { this.submitted += 1; },
+        data: [{ score: null, specialType: 0 }],
+        timeoutId: null,
+        isMultScore: false,
+    };
+    const input = makeInput({ placeholder: '满分10' });
+    const form = { listeners: [] };
+    const button = makeButton('提交分数');
+    button.form = form;
+    button._cap = [];
+    button._bub = [];
+    button.addEventListener = function (type, fn, capture) {
+        (capture ? this._cap : this._bub).push(fn);
+    };
+    form.addEventListener = function (type, fn) { this.listeners.push(fn); };
+    // 浏览器：click 监听先跑完，提交按钮的默认动作才触发 form submit / ngSubmit。
+    button.click = function () {
+        this.clicked = (this.clicked || 0) + 1;
+        this._cap.forEach((fn) => fn());
+        this._bub.forEach((fn) => fn());
+        component.submit();
+        form.listeners.forEach((fn) => fn());
+    };
+    const env = load({ inputs: [input], component, buttons: [button], context: [component] });
+    env.sb.setTimeout = setTimeout;
+    env.sb.clearTimeout = clearTimeout;
+    input.dispatchEvent = () => { component.data[0].score = Number(input.value); };
+    assert.strictEqual(env.adapter.fillScores([6]), true);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    setTimeout(() => component.debounceSubmit(), 0);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    assert.strictEqual(component.submitted, 0, '填分排上的计时不得交卷');
+
+    assert.strictEqual(env.adapter.submitGrade(), true);
+    assert.strictEqual(button.clicked, 1);
+    assert.strictEqual(component.submitted, 1, 'ngSubmit 在 click 冒泡之后仍必须交上这一份');
+    component.submit();
+    assert.strictEqual(component.submitted, 1, '放行只覆盖这一次点击，不能把后面的计时也放开');
+    if (component.timeoutId != null) clearTimeout(component.timeoutId);
+});
+
+test('0 分是有效分数：填入并经表单提交后，跟着平台换到下一份', async () => {
+    const page = aiduoPage('task-0', 'stu-0');
+    const component = {
+        submitted: 0,
+        debounceSubmit() {
+            this.timeoutId = setTimeout(() => this.submit(), 1000);
+        },
+        submit() { this.submitted += 1; },
+        data: [{ score: null, specialType: 0 }],
+        timeoutId: null,
+        isMultScore: false,
+    };
+    const input = makeInput({ placeholder: '满分10', classes: ['ng-invalid', 'ng-touched'] });
+    input.dispatchEvent = () => {
+        const raw = input.value;
+        component.data[0].score = raw === '' ? null : Number(raw);
+        if (raw === '') input.classList.add('ng-invalid');
+        else input.classList.remove('ng-invalid');
+    };
+    const form = { listeners: [] };
+    const button = makeButton('提交分数');
+    button.form = form;
+    button._cap = [];
+    button._bub = [];
+    button.addEventListener = function (type, fn, capture) {
+        (capture ? this._cap : this._bub).push(fn);
+    };
+    form.addEventListener = function (type, fn) { this.listeners.push(fn); };
+    button.click = function () {
+        this.clicked = (this.clicked || 0) + 1;
+        this._cap.forEach((fn) => fn());
+        this._bub.forEach((fn) => fn());
+        component.submit();
+        form.listeners.forEach((fn) => fn());
+    };
+    const img = { src: 'https://cdn.example/sheet.jpg?x-oss-process=image/crop,x_1,y_2,w_3,h_4', naturalWidth: 40 };
+    const env = load({
+        inputs: [input],
+        images: [img],
+        buttons: [button],
+        component,
+        context: [component],
+        waitMs: 700,
+        examIndex: { __ngContext__: [null, page] },
+    });
+    env.sb.setTimeout = setTimeout;
+    env.sb.clearTimeout = clearTimeout;
+
+    assert.strictEqual(env.adapter.fillScores([0]), true, '0 分必须填进去');
+    assert.strictEqual(input.value, '0');
+    assert.strictEqual(component.data[0].score, 0);
+    assert.strictEqual(input.classList.contains('ng-invalid'), false, '0 分不是空分');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    setTimeout(() => component.debounceSubmit(), 0);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    assert.strictEqual(component.submitted, 0, '填 0 分不能触发输入即提交');
+
+    assert.strictEqual(env.adapter.submitGrade(), true);
+    assert.strictEqual(component.submitted, 1, '确认后要点爱多分提交分数，把 0 分交上去');
+
+    input.value = '';
+    component.data[0].score = null;
+    page.topicBlockInfo.taskInfo.taskId = 'task-1';
+    page.topicBlockInfo.baseInfo.studentId = 'stu-1';
+    img.src = 'blob:https://ui.eiduo.com/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+    assert.strictEqual(
+        await env.adapter.waitForNextPaper('https://cdn.example/sheet.jpg?x-oss-process=image/crop,x_1,y_2,w_3,h_4'),
+        true,
+        '0 分交卷后要跟上平台换卷，不能因为分数框被清空就停住'
+    );
+
+    const stuck = load({
+        inputs: [makeInput({ placeholder: '满分10' })],
+        images: [{ src: 'https://cdn.example/papers/a.jpg?token=1', naturalWidth: 20 }],
+        waitMs: 240,
+    });
+    stuck.sb.setTimeout = setTimeout;
+    stuck.sb.clearTimeout = clearTimeout;
+    stuck.inputs[0].value = '';
+    assert.strictEqual(await stuck.adapter.waitForNextPaper('https://cdn.example/papers/a.jpg?token=1'), false, '只是分数框空了，还不是下一份');
+
+    const regrade = load({ path: '/exam-webapp/marking/check-index', inputs: [makeInput({ placeholder: '满分10' })] });
+    assert.strictEqual(regrade.adapter.fillScores([0]), false);
+    assert.strictEqual(regrade.adapter.submitGrade(), false);
+    const batched = load({ batchEl: { className: 'submit-mult' }, inputs: [makeInput({ placeholder: '满分10' })] });
+    assert.strictEqual(batched.adapter.fillScores([0]), false);
+    assert.strictEqual(batched.adapter.submitGrade(), false);
+    if (component.timeoutId != null) clearTimeout(component.timeoutId);
+});
+
 test('模型没跟上、按钮禁用、抽查回评、批量打分时拒绝点击提交', () => {
     const input = makeInput({ placeholder: '满分10', onEvent: () => {} });
     const stuck = load({ inputs: [input] });
@@ -427,6 +565,74 @@ test('换卷只认稳定的答题图路径，空分数框和查询串抖动都�
     assert.ok(Date.now() - t0 < 200, '没有基准图时应立即失败，不能空等');
 });
 
+function aiduoPage(taskId, studentId) {
+    return {
+        topicBlockInfo: {
+            taskInfo: { taskId: taskId },
+            baseInfo: { studentId: studentId },
+        },
+    };
+}
+
+test('换卷认任务和学生，图片路径不变、只改裁切参数或变成 blob 也要能继续', async () => {
+    const page = aiduoPage('task-1', 'stu-1');
+    const img = {
+        src: 'https://cdn.example/sheet.jpg?x-oss-process=image/crop,x_1,y_2,w_30,h_40',
+        naturalWidth: 80,
+    };
+    const input = makeInput({ placeholder: '满分10' });
+    const env = load({
+        inputs: [input],
+        images: [img],
+        waitMs: 800,
+        search: '?examId=9&subjectId=3',
+        examIndex: { __ngContext__: [null, page] },
+    });
+    env.sb.setTimeout = setTimeout;
+    env.sb.clearTimeout = clearTimeout;
+    input.dispatchEvent = () => { env.component.data[0].score = Number(input.value); };
+    assert.strictEqual(env.adapter.getPaperIdentity(), 'task=task-1&student=stu-1');
+    assert.ok(!String(env.adapter.getTaskIdentifier()).includes('stu-1'), '题目标识不能拿学生当题');
+    const other = load({
+        search: '?examId=9&subjectId=3',
+        examIndex: { __ngContext__: [null, aiduoPage('task-2', 'stu-2')] },
+    });
+    assert.strictEqual(other.adapter.getTaskIdentifier(), env.adapter.getTaskIdentifier());
+    assert.notStrictEqual(other.adapter.getPaperIdentity(), env.adapter.getPaperIdentity());
+
+    assert.strictEqual(env.adapter.fillScores([4]), true);
+    assert.strictEqual(env.adapter.submitGrade(), true);
+    page.topicBlockInfo.taskInfo.taskId = 'task-2';
+    page.topicBlockInfo.baseInfo.studentId = 'stu-2';
+    img.src = 'blob:https://ui.eiduo.com/11111111-2222-4333-8444-555555555555';
+    assert.strictEqual(await env.adapter.waitForNextPaper('https://cdn.example/sheet.jpg?x-oss-process=image/crop,x_1,y_2,w_30,h_40'), true);
+
+    const sameStudent = aiduoPage('task-9', 'stu-9');
+    const moving = { src: 'https://cdn.example/papers/a.jpg?token=1', naturalWidth: 40 };
+    const held = load({
+        inputs: [makeInput({ placeholder: '满分10' })],
+        images: [moving],
+        waitMs: 320,
+        examIndex: { __ngContext__: [null, sameStudent] },
+    });
+    held.sb.setTimeout = setTimeout;
+    held.sb.clearTimeout = clearTimeout;
+    const heldInput = held.inputs[0];
+    heldInput.dispatchEvent = () => { held.component.data[0].score = Number(heldInput.value); };
+    assert.strictEqual(held.adapter.fillScores([4]), true);
+    assert.strictEqual(held.adapter.submitGrade(), true);
+    moving.src = 'https://cdn.example/papers/b.jpg?x-oss-process=image/crop,x_8,y_9,w_10,h_11';
+    moving.naturalWidth = 90;
+    assert.strictEqual(await held.adapter.waitForNextPaper('https://cdn.example/papers/a.jpg?token=1'), false, '同一任务的图片路径抖动不是换人');
+
+    const stale = { src: 'https://cdn.example/papers/a.jpg', naturalWidth: 20, hidden: true, style: {} };
+    const fresh = { src: 'https://cdn.example/papers/b.jpg', naturalWidth: 70, hidden: false, style: {} };
+    const visible = load({ images: [stale, fresh], waitMs: 800 });
+    visible.sb.setTimeout = setTimeout;
+    visible.sb.clearTimeout = clearTimeout;
+    assert.strictEqual(await visible.adapter.waitForNextPaper('https://cdn.example/papers/a.jpg'), true, '藏起来的旧图不能挡住新卷');
+});
+
 test('取图要稳定两次，丢掉 favicon 和资源图，不稳定就返回空', async () => {
     const good = { src: 'https://cdn.example/papers/a.jpg?sig=1', naturalWidth: 10 };
     const icon = { src: 'https://www.eiduo.com/assets/logo.png', naturalWidth: 16 };
@@ -487,6 +693,38 @@ test('爱多分普通模式不倒计时自动提交，无人值守和其他平�
     const otherNormal = openDialog('normal', false);
     assert.ok(otherNormal.dialog.countdownTimer, '其他平台普通模式仍倒计时自动提交');
     assert.ok(otherNormal.html.includes('id="countdown-number"'));
+});
+
+test('普通和试改要点面板提交才交卷，无人值守倒计时结束后自己交', async () => {
+    const { env, load: loadCore, settle } = require('./_audit-harness');
+    function open(mode) {
+        const e = env();
+        e.state.gradingMode = mode;
+        e.state.isRunning = true;
+        e.adapter.requiresManualConfirm = true;
+        loadCore(e, 'src/core/main.js');
+        loadCore(e, 'src/core/ui-submit-dialog.js');
+        const dialog = e.sb.showAutoSubmitDialog(6, '评语', null);
+        assert.ok(dialog, mode + ' 弹窗应出现');
+        return { e, dialog };
+    }
+    const normal = open('normal');
+    assert.strictEqual(normal.e.calls.submit.length, 0, '普通模式打开面板时不能点爱多分提交分数');
+    await normal.dialog.confirmSubmit();
+    assert.strictEqual(normal.e.calls.submit.length, 1, '教师点面板提交后才交卷');
+
+    const trial = open('trial');
+    assert.strictEqual(trial.e.calls.submit.length, 0, '试改打开面板时不能点爱多分提交分数');
+    await trial.dialog.confirmSubmit();
+    assert.strictEqual(trial.e.calls.submit.length, 1, '试改也要等教师点面板提交');
+
+    const auto = open('unattended');
+    assert.strictEqual(auto.e.calls.submit.length, 0, '无人值守在倒计时结束前不交卷');
+    const tick = auto.e.intervals.get(auto.dialog.countdownTimer);
+    assert.strictEqual(typeof tick, 'function');
+    tick();
+    await settle();
+    assert.strictEqual(auto.e.calls.submit.length, 1, '无人值守倒计时结束后点击爱多分提交分数');
 });
 
 test('试改确认后只交这一份，不再等待下一份', async () => {

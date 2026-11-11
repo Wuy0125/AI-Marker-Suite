@@ -19,6 +19,6 @@ const AIDUO_SELECTORS = {
     // 页面级阅卷组件（isMultScore / multTopic）
     EXAM_INDEX: 'exam-index',
 
-    // 答题图。签名、裁切参数在查询串里，比对时要丢掉
+    // 答题图。签名和裁切参数在查询串里。没读到任务身份时，比对要丢掉查询串。
     ANSWER_IMAGE: '.img-wrap img[src], .img-content img[src], .imgs img[src]',
 };

@@ -3,7 +3,7 @@
 
 const SCRIPT_CONFIG = {
     /** 当前脚本版本号，修改此处即可同步更新所有引用 */
-    VERSION: '1.21.18.11',
+    VERSION: '1.21.18.12',
 
     /** 轻量级更新检查 UL（优先使用，~1KB）—— stable 渠道默认值 */
     MANIFEST_URL: 'https://auto-update.aimarking.five-plus-one.com/ota/manifest.json',
@@ -44,6 +44,9 @@ const SCRIPT_CONFIG = {
      * 运行时从远端 manifest.json 加载，此处作为构建时的数据源
      */
     CHANGELOG: {
+        '1.21.18.12': [
+            '【修复】爱多分 0 分也会提交并跟上平台换卷：0 分按有效分数填入和交卷，空分数框仍不能当成已经换卷',
+        ],
         '1.21.18.11': [
             '【修复】恢复首次使用和新试题的分步引导，可验证 API 密钥并创建方案',
         ],

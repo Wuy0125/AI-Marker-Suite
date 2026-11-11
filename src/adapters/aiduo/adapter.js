@@ -11,7 +11,10 @@
 // - 写入输入框会触发平台「输入即提交」计时（约 0.4–6 秒）。填分期间清掉这段计时，
 //   只允许 submitGrade 点击「提交分数」。
 // - 输入框与 Angular 阅卷模型必须一致，否则显式失败，避免把旧分交上去。
-// - 换卷只认答题图路径变化，空分数框不能当成下一份。
+// - 「提交分数」是表单按钮。Angular 的 ngSubmit 在 click 冒泡之后才调用 submit，
+//   放行必须盖住这一段，不能在 click 冒泡里关掉。
+// - 换卷优先认当前答卷的 taskId / studentId。考试和科目不变，不能拿来当答卷身份。
+//   读不到身份时，才看可见答题图的路径；签名、裁切参数和藏起来的旧图都不算换卷。
 
 const AIDUO_TASK_KEYS = ['examId', 'subjectId', 'isArbitrate', 'check'];
 const AIDUO_DEBOUNCE_MIN_MS = 400;
@@ -92,6 +95,17 @@ function aiduoIsScoreInput(el) {
     return Number.isFinite(maxScore) && maxScore > 0;
 }
 
+function aiduoImageVisible(img) {
+    let node = img;
+    while (node) {
+        if (node.hidden) return false;
+        const style = node.style || {};
+        if (style.display === 'none' || style.visibility === 'hidden') return false;
+        node = node.parentElement;
+    }
+    return !!img;
+}
+
 function aiduoInputLabel(el, index) {
     const item = el.closest ? el.closest('.item') : null;
     const titled = item && item.querySelector ? item.querySelector('[title]') : null;
@@ -127,6 +141,7 @@ const AiduoAdapter = {
     requiresManualConfirm: true,
 
     _expectedScores: null,
+    _baselinePaperKey: '',
     _allowPlatformSubmit: false,
     _holdActive: false,
     _holdGeneration: 0,
@@ -192,6 +207,16 @@ const AiduoAdapter = {
         });
         const base = hashPath ? path + hashPath : path;
         return parts.length ? base + '?' + parts.join('&') : base;
+    },
+
+    // 一份答卷的身份。taskId 每份任务一换，studentId 每生一换。
+    // examId / subjectId 整场不变，不能放进这里。
+    getPaperIdentity() {
+        try {
+            return this._readPaperKey() || null;
+        } catch (e) {
+            return null;
+        }
     },
 
     async gatherAnswerImages() {
@@ -376,7 +401,9 @@ const AiduoAdapter = {
             console.warn('[爱多分] 「提交分数」按钮不可用');
             return false;
         }
-        // 只在这次点击期间放行。弹窗「确认提交」和教师直接点「提交分数」都会走到这里或按钮钩子。
+        // 先记下这份答卷。平台的换卷请求回来时，图可能已经换成 blob，或路径只改了裁切参数。
+        this._baselinePaperKey = this._readPaperKey();
+        // ngSubmit 在 click() 里面、click 冒泡结束之后同步发生。放行要盖住整个 click()。
         this._allowPlatformSubmit = true;
         try {
             button.click();
@@ -396,9 +423,10 @@ const AiduoAdapter = {
     },
 
     async waitForNextPaper(oldImageUrl) {
-        const baseline = aiduoNormalizeImageUrl(oldImageUrl) || aiduoNormalizeImageUrl(this._answerUrls()[0] || '');
-        if (!baseline) {
-            console.warn('[爱多分] 没有基准答题图，不能判断是否换卷');
+        const baselineKey = this._baselinePaperKey || '';
+        const baselineImg = aiduoNormalizeImageUrl(oldImageUrl);
+        if (!baselineKey && !baselineImg) {
+            console.warn('[爱多分] 没有基准答卷，不能判断是否换卷');
             return false;
         }
         const win = Number(window.__AI_MARKER_WAIT_WINDOW_MS__);
@@ -408,16 +436,22 @@ const AiduoAdapter = {
         let candidate = '';
         let hits = 0;
         while (true) {
-            const url = aiduoNormalizeImageUrl(this._answerUrls()[0] || '');
-            const image = this._answerImages()[0];
-            const loaded = !!(image && image.naturalWidth > 0);
-            if (url && url !== baseline && loaded) {
-                if (url === candidate) hits += 1;
-                else { candidate = url; hits = 1; }
+            const key = this._readPaperKey();
+            let sig = '';
+            if (baselineKey && key && key !== baselineKey) {
+                sig = 'id:' + key;
+            } else if (!(baselineKey && key && key === baselineKey) && this._imageAdvanced(baselineImg)) {
+                const urls = this._answerUrls().map(aiduoNormalizeImageUrl).filter(Boolean);
+                sig = 'img:' + urls.join('|');
+            }
+            if (sig) {
+                if (sig === candidate) hits += 1;
+                else { candidate = sig; hits = 1; }
                 if (hits >= 2) {
+                    this._baselinePaperKey = '';
                     this._releaseSubmitHold();
                     this._expectedScores = null;
-                    console.log('[爱多分] 换卷（答题图路径已变化）');
+                    console.log('[爱多分] 换卷（' + (sig.indexOf('id:') === 0 ? '任务已切换' : '答题图已切换') + '）');
                     return true;
                 }
             } else {
@@ -425,7 +459,7 @@ const AiduoAdapter = {
                 hits = 0;
             }
             if (Date.now() >= deadline) {
-                console.warn('[爱多分] 等待下一份超时（未把空分数框当成换卷）');
+                console.warn('[爱多分] 等待下一份超时（未把空分数框或同一任务的裁切抖动当成换卷）');
                 return false;
             }
             await new Promise((resolve) => setTimeout(resolve, tick));
@@ -495,7 +529,58 @@ const AiduoAdapter = {
 
     _answerImages() {
         return Array.from(document.querySelectorAll(AIDUO_SELECTORS.ANSWER_IMAGE))
-            .filter((img) => aiduoNormalizeImageUrl(img && img.src));
+            .filter((img) => aiduoImageVisible(img) && aiduoNormalizeImageUrl(img && img.src));
+    },
+
+    _imageAdvanced(baselineImg) {
+        if (!baselineImg) return false;
+        const images = this._answerImages();
+        const urls = images.map((img) => aiduoNormalizeImageUrl(img && img.src)).filter(Boolean);
+        if (!urls.length || urls.indexOf(baselineImg) !== -1) return false;
+        return images.some((img) => img && img.naturalWidth > 0);
+    },
+
+    _readPaperKey() {
+        try {
+            const nodes = [];
+            const index = document.querySelector(AIDUO_SELECTORS.EXAM_INDEX);
+            const submit = document.querySelector(AIDUO_SELECTORS.SUBMIT_ROOT);
+            if (index) nodes.push(index);
+            if (submit) nodes.push(submit);
+            for (let i = 0; i < nodes.length; i++) {
+                const key = this._keyFromContext(nodes[i].__ngContext__);
+                if (key) return key;
+            }
+        } catch (e) { /* 身份读不到就退回图片 */ }
+        return '';
+    },
+
+    _keyFromContext(ctx) {
+        const direct = this._keyFromBlock(ctx && ctx.topicBlockInfo);
+        if (direct) return direct;
+        const list = this._contextList(ctx);
+        if (!list) return '';
+        for (let i = 0; i < list.length; i++) {
+            const node = list[i];
+            if (!node || typeof node !== 'object') continue;
+            const key = this._keyFromBlock(node.topicBlockInfo);
+            if (key) return key;
+        }
+        return '';
+    },
+
+    _keyFromBlock(block) {
+        if (!block || typeof block !== 'object') return '';
+        const task = block.taskInfo;
+        const base = block.baseInfo;
+        const taskId = task && task.taskId != null && String(task.taskId) !== '' ? String(task.taskId) : '';
+        let studentId = '';
+        if (base && typeof base === 'object' && !Array.isArray(base)
+            && base.studentId != null && String(base.studentId) !== '') {
+            studentId = String(base.studentId);
+        }
+        if (!taskId && !studentId) return '';
+        return 'task=' + taskId + '&student=' + studentId;
     },
 
     _answerUrls() {
@@ -656,13 +741,22 @@ const AiduoAdapter = {
                 try {
                     return originalClick.apply(this, arguments);
                 } finally {
+                    // click() 返回时，表单的 ngSubmit 已经同步跑完。这里再关上。
                     if (!already) adapter._allowPlatformSubmit = false;
                 }
             };
         }
-        if (typeof button.addEventListener === 'function') {
+        // 教师若直接点页面上的「提交分数」，走的是 DOM 事件而不是 button.click()。
+        // 捕获阶段打开，form submit 冒泡阶段再关。不能在 click 冒泡里关：
+        // 爱多分的 (ngSubmit) 发生在 click 冒泡之后。
+        const root = document.querySelector(AIDUO_SELECTORS.SUBMIT_ROOT);
+        const form = button.form || (root && typeof root.querySelector === 'function' ? root.querySelector('form') : null);
+        if (form && typeof form.addEventListener === 'function' && !form.__aiduoSubmitHook) {
+            form.addEventListener('submit', () => { adapter._allowPlatformSubmit = false; }, false);
+            form.__aiduoSubmitHook = true;
+        }
+        if (form && typeof button.addEventListener === 'function') {
             button.addEventListener('click', () => { adapter._allowPlatformSubmit = true; }, true);
-            button.addEventListener('click', () => { adapter._allowPlatformSubmit = false; }, false);
         }
         button.__aiduoClickHook = true;
     },
