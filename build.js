@@ -436,7 +436,6 @@ function buildVendorCode() {
 
 function generateHeader(config, version) {
     const h = config.header;
-    const channelUrl = CHANNEL_URLS[CHANNEL] || CHANNEL_URLS.stable;
     const lines = ['// ==UserScript=='];
     // prtest 与主脚本同 name+namespace：Tampermonkey 以 name+namespace 组合识别脚本身份，
     // 统一后 PR 临时测试版安装时替换正式版，避免两个脚本双开（#144）
@@ -445,8 +444,6 @@ function generateHeader(config, version) {
     lines.push(`// @version      ${version}`);
     lines.push(`// @description  ${h.description}`);
     lines.push(`// @author       ${h.author || '5plus1'}`);
-    lines.push(`// @downloadURL  ${channelUrl.scriptUrl}`);
-    lines.push(`// @updateURL    ${CHANNEL === 'prtest' ? channelUrl.scriptUrl : channelUrl.manifestUrl.replace('manifest.json', 'ai_marker.user.js')}`);
     for (const m of h.match) lines.push(`// @match        ${m}`);
     if (h.include) {
         for (const i of h.include) lines.push(`// @include      ${i}`);

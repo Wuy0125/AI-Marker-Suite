@@ -788,9 +788,6 @@ async function initToolsPageMode() {
 
     // 注入工具页面 UI
     createToolsPageUI();
-
-    // 检查更新（延迟）
-    setTimeout(() => checkForUpdate(), 3000);
 }
 
 // ========== 初始化 ==========
@@ -843,16 +840,7 @@ async function runInitBody() {
 
     console.log('✅ [诊断] 检测到批改页面，开始初始化UI');
     createMainButton();
-
-    // 首次启动或重置后显示新手引导
-    const showOnboarding = GM_getValue('ai-grading-show-onboarding', true);
-    if (showOnboarding) {
-        // 先创建设置面板但不打开（避免空表单与 OOBE 竞争）
-        createSettingsPanel({ deferOpen: true });
-        setTimeout(() => showOnboardingDialog(true, 'first-launch'), 500);
-    } else {
-        createSettingsPanel();
-    }
+    createSettingsPanel();
     if (typeof updateMainButtonState === 'function') updateMainButtonState();
 
     if ([PresetManager, ProviderManager, WorkflowManager].some(manager => manager._initialSaveFailed)) {
@@ -862,15 +850,6 @@ async function runInitBody() {
     // 初始化批阅份数功能
     initBatchProgress();
     renderBatchProgress();
-
-    // 检查更新（延迟 5 秒，避免影响页面主要功能加载）
-    setTimeout(() => checkForUpdate(), 5000);
-
-    // 更新后刷新提示
-    if (sessionStorage.getItem('ai-update-reloaded') === 'true') {
-        sessionStorage.removeItem('ai-update-reloaded');
-        showToast('脚本已更新至最新版本 v' + SCRIPT_CONFIG.VERSION);
-    }
 
     // 配置恢复提示
     const restoredFrom = sessionStorage.getItem('ai-config-restored');
@@ -1023,23 +1002,13 @@ async function runNewTaskOnboardingFlow(currentUrlId) {
         showToast(`📝 未找到当前题目的专属方案，已恢复为【默认配置】`);
     }
 
-    // 检查 API KEY 是否配置
+    // 没有密钥时直接打开设置，不再走分步引导
     const apiKey = ProviderManager.getProvider('5plus1官方')?.apiKey || '';
-    console.log('🔍 [OOBE调试] apiKey存在:', !!apiKey);
     if (!apiKey) {
-        console.log('🔍 [OOBE调试] 无API Key，弹出首次启动OOBE');
-        showOnboardingDialog(true, 'first-launch');
+        showToast('请先在设置中配置 API 密钥');
+        if (!document.getElementById('ai-grading-settings')) createSettingsPanel();
+        else openSettingsPanel();
         return;
-    }
-
-    // 检查是否是新试题（未绑定配置）
-    console.log('🔍 [OOBE调试] 检查新试题条件: boundPreset=', boundPreset, ', 存在配置=', !!PresetManager.data.list[boundPreset]);
-    if (!boundPreset || !PresetManager.data.list[boundPreset]) {
-        console.log('🔍 [OOBE调试] 条件满足，弹出新试题OOBE');
-        showOnboardingDialog(true, 'new-question');
-        return;
-    } else {
-        console.log('🔍 [OOBE调试] 条件不满足，不弹出OOBE');
     }
 
     const select = document.getElementById('preset-select');

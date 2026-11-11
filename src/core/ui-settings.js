@@ -1068,104 +1068,8 @@ function createSettingsPanel(options) {
                 <div class="about-page">
                     <div class="about-header">
                         <div class="about-logo">AI</div>
-                        <h2 class="about-title">AI 批改助手</h2>
-                        <p class="about-version">版本 ${SCRIPT_CONFIG.VERSION} <span class="channel-badge channel-badge-${getBuildChannel()}">${getBuildChannelLabel()}</span></p>
-                        <div class="about-channel-select">
-                            <label for="settings-channel-select">更新渠道</label>
-                            <select id="settings-channel-select">
-                                <option value="stable">稳定版</option>
-                                <option value="preview">预览版</option>
-                                <option value="dev">开发版</option>
-                            </select>
-                            <div class="about-channel-hint">切换渠道将从对应渠道获取更新</div>
-                        </div>
-                    </div>
-
-                    <div class="about-section">
-                        <div class="about-section-title">帮助与支持</div>
-                        <div class="about-links">
-                            <a href="https://aimarking.five-plus-one.com/" target="_blank" class="about-link">
-                                <span class="about-link-icon">📖</span>
-                                <div class="about-link-text">
-                                    <div>帮助文档</div>
-                                    <div class="about-link-desc">查看使用教程和常见问题</div>
-                                </div>
-                            </a>
-                            <a href="https://github.com/five-plus-one/AI-Marker-Suite" target="_blank" class="about-link">
-                                <span class="about-link-icon">💻</span>
-                                <div class="about-link-text">
-                                    <div>GitHub 仓库</div>
-                                    <div class="about-link-desc">查看源代码、提交反馈</div>
-                                </div>
-                            </a>
-                            <a href="https://r-l.ink/contact" target="_blank" class="about-link">
-                                <span class="about-link-icon">📧</span>
-                                <div class="about-link-text">
-                                    <div>联系作者</div>
-                                    <div class="about-link-desc">反馈问题、请求适配更多平台</div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="about-support">
-                        <div class="about-support-title">☕ 支持作者</div>
-                        <div class="about-support-desc">如果这个工具对您有帮助，欢迎请作者喝杯咖啡！您的支持是持续更新的动力。</div>
-                        <div class="about-qrcodes">
-                            <div class="about-qrcode">
-                                <img src="https://r-l.ink/paywx1" alt="微信赞赏" onerror="this.style.display='none'">
-                                <div class="about-qrcode-label">微信赞赏</div>
-                            </div>
-                            <div class="about-qrcode">
-                                <img src="https://r-l.ink/payzfb1" alt="支付宝赞赏" onerror="this.style.display='none'">
-                                <div class="about-qrcode-label">支付宝赞赏</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top:16px;">
-                        <div class="about-section-title">关注公众号</div>
-                        <div style="text-align:center;">
-                            <img src="https://r-l.ink/wxmp1" alt="微信公众号" style="width:120px;height:120px;border-radius:8px;border:1px solid rgba(0,0,0,0.1);" onerror="this.style.display='none'">
-                            <div style="font-size:11px;color:#86868b;margin-top:4px;">扫码关注公众号获取最新动态</div>
-                        </div>
-                    </div>
-
-                    <div class="about-section" style="margin-top:20px;">
-                        <div class="about-section-title">社区与交流</div>
-                        <div class="about-links">
-                            <a href="https://five-plus-one.com" target="_blank" class="about-link">
-                                <span class="about-link-icon">🌐</span>
-                                <div class="about-link-text">
-                                    <div>作者主页</div>
-                                    <div class="about-link-desc">五加一的星空</div>
-                                </div>
-                            </a>
-                            <a href="https://r-l.ink/s/L9Akf" target="_blank" class="about-link">
-                                <span class="about-link-icon">💬</span>
-                                <div class="about-link-text">
-                                    <div>微信交流群</div>
-                                    <div class="about-link-desc">加入微信群交流讨论</div>
-                                </div>
-                            </a>
-                            <a href="https://r-l.ink/s/WbMrR" target="_blank" class="about-link">
-                                <span class="about-link-icon">👥</span>
-                                <div class="about-link-text">
-                                    <div>QQ 交流群</div>
-                                    <div class="about-link-desc">加入QQ群交流讨论</div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="about-section changelog-section">
-                        <div class="about-section-title">更新日志</div>
-                        <div class="changelog-list" id="changelog-list"></div>
-                    </div>
-
-                    <div class="about-copyright">
-                        <div>AI 批改助手 © ${new Date().getFullYear()} Five Plus One</div>
-                        <div style="margin-top:4px;">Made with ❤️ for teachers</div>
+                        <h2 class="about-title">wuy0125爱多分适配版 AI-Marker-Suite</h2>
+                        <p class="about-version">版本 ${SCRIPT_CONFIG.VERSION}</p>
                     </div>
                 </div>
             </div>
@@ -1173,7 +1077,6 @@ function createSettingsPanel(options) {
 
         <div class="sidebar-footer">
             <button class="footer-btn" id="btn-history">评阅历史</button>
-            <button class="footer-btn" id="btn-check-update">检查更新</button>
         </div>
     `;
     getUIRoot().appendChild(panel);
@@ -1257,28 +1160,6 @@ function createSettingsPanel(options) {
     panel.querySelector('#btn-history').onclick = () => showHistoryPanel();
     const pageHistoryBtn = panel.querySelector('#btn-history-page');
     if (pageHistoryBtn) pageHistoryBtn.onclick = () => showHistoryPanel();
-    panel.querySelector('#btn-check-update').onclick = function() { checkForUpdate(true, this); };
-
-    // 渠道选择器
-    const channelSelect = panel.querySelector('#settings-channel-select');
-    if (channelSelect) {
-        channelSelect.value = getChannelName();
-        channelSelect.onchange = async () => {
-            const newChannel = channelSelect.value;
-            const channelInfo = SCRIPT_CONFIG.CHANNELS[newChannel] || {};
-            const label = channelInfo.label || newChannel;
-            if (await showConfirmModal(`确定要切换到${label}吗？\n\n切换后将从${label}渠道获取更新，可能安装不同稳定性的版本。`)) {
-                GM_setValue('ai-grading-channel', newChannel);
-                clearUnsavedChanges();
-                showToast(`已切换到${label}，自动保存成功`);
-                // 立即检查更新
-                setTimeout(() => checkForUpdate(true), 500);
-            } else {
-                // 用户取消，恢复下拉框值
-                channelSelect.value = getChannelName();
-            }
-        };
-    }
 
     panel.querySelector('#btn-new-provider').onclick = handleNewProvider;
     panel.querySelector('#btn-del-provider').onclick = handleDeleteProvider;
@@ -1410,7 +1291,6 @@ function createSettingsPanel(options) {
             ProviderManager.save();
             WorkflowManager.data = WorkflowManager._getDefault();
             WorkflowManager.save();
-            GM_setValue('ai-grading-show-onboarding', true);
             showToast('已恢复默认设置，正在刷新...');
             setTimeout(() => location.reload(), 800);
         }
@@ -1431,7 +1311,7 @@ function createSettingsPanel(options) {
         });
     });
 
-    const inputs = panel.querySelectorAll('input:not([name="grading-mode"]), textarea, select:not(#preset-select):not(#settings-channel-select)');
+    const inputs = panel.querySelectorAll('input:not([name="grading-mode"]), textarea, select:not(#preset-select)');
     inputs.forEach(input => {
         input.addEventListener('input', () => { refreshScoringTotal(); validateRequiredFields({ showErrors: false }); markUnsavedChanges(); updateSettingsNavBadges(); updateSettingsHeaderStatus(); });
         input.addEventListener('change', () => { refreshScoringTotal(); validateRequiredFields({ showErrors: false }); markUnsavedChanges(); updateSettingsNavBadges(); updateSettingsHeaderStatus(); });
@@ -1483,7 +1363,6 @@ function createSettingsPanel(options) {
     };
 
     loadSettings();
-    renderChangelog();
 
     // 绑定方案导入导出按钮（方案页 + 批改页）
     // 必须在 createSettingsPanel 内绑定：handleExportPreset/presetFileInput 属于本函数作用域，
@@ -1523,7 +1402,7 @@ function setupSettingsMenuLayout(panel) {
         { id: 'ai', label: 'AI', title: 'AI', desc: '管理批改工作流、服务供应商、密钥和模型。' },
         { id: 'automation', label: '自动化', title: '自动化', desc: '设置批阅份数限制和自动暂停边界。' },
         { id: 'data', label: '数据', title: '数据', desc: '管理历史、图片保存、配置备份和恢复默认设置。' },
-        { id: 'about', label: '关于', title: '关于', desc: '查看版本、帮助入口、社区链接和更新日志。' },
+        { id: 'about', label: '关于', title: '关于', desc: '查看脚本名称和版本。' },
     ];
 
     const shell = document.createElement('div');
@@ -1619,82 +1498,6 @@ function setupSettingsMenuLayout(panel) {
             pagesRoot.querySelector(`.settings-page[data-page="${btn.dataset.page}"]`)?.classList.add('active');
         };
     });
-}
-
-// ========== 渲染 CHANGELOG ==========
-function renderChangelogContent(container, changelog) {
-    const versions = Object.keys(changelog);
-    if (versions.length === 0) {
-        container.innerHTML = '<div style="font-size:12px;color:#aaa;">暂无更新日志</div>';
-        return;
-    }
-
-    const arrowSVG = '<svg class="changelog-toggle" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-    let html = '';
-    const escCl = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, ch => (
-        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
-    ));
-    versions.forEach((ver, idx) => {
-        const items = changelog[ver];
-        const collapsedClass = idx === 0 ? '' : ' collapsed'; // 最新版本展开，其余折叠
-
-        html += `<div class="changelog-version${collapsedClass}">`;
-        html += `<div class="changelog-version-header">`;
-        html += arrowSVG;
-        html += `<span class="changelog-ver">v${escCl(ver)}</span>`;
-        html += `</div>`;
-        html += `<ul class="changelog-items">`;
-        items.forEach(item => {
-            // 远端 changelog 文本转义（#299）
-            html += `<li>${escCl(item)}</li>`;
-        });
-        html += `</ul></div>`;
-    });
-
-    container.innerHTML = html;
-
-    // 点击折叠/展开
-    container.querySelectorAll('.changelog-version-header').forEach(header => {
-        header.onclick = () => header.parentElement.classList.toggle('collapsed');
-    });
-}
-
-async function renderChangelog() {
-    const container = document.getElementById('changelog-list');
-    if (!container) return;
-
-    // 先显示加载状态
-    container.innerHTML = '<div style="font-size:12px;color:#aaa;">加载中...</div>';
-
-    // 尝试从远端 manifest.json 加载 changelog
-    try {
-        const response = await new Promise((resolve, reject) => {
-            GM_xmlhttpRequest({
-                method: 'GET',
-                url: SCRIPT_CONFIG.MANIFEST_URL + '?_t=' + Date.now(),
-                timeout: 5000,
-                onload: resolve,
-                onerror: reject,
-                ontimeout: reject
-            });
-        });
-
-        if (response.status >= 200 && response.status < 300) {
-            const manifest = JSON.parse(response.responseText);
-            if (manifest.changelog && typeof manifest.changelog === 'object') {
-                console.log('[Changelog] 成功从远端加载');
-                renderChangelogContent(container, manifest.changelog);
-                return;
-            }
-        }
-    } catch (e) {
-        console.warn('[Changelog] 远端加载失败:', e.message);
-    }
-
-    // 降级：使用本地 CHANGELOG
-    console.log('[Changelog] 使用本地 CHANGELOG');
-    renderChangelogContent(container, SCRIPT_CONFIG.CHANGELOG || {});
 }
 
 // ========== 侧边栏开关 ==========
@@ -3098,444 +2901,13 @@ function hideOnboardingDialog() {
     }
 }
 
-function showOnboardingDialog(forceShow, mode) {
-    if (_onboardingDialogOpen) return; // 已打开，跳过
-    _onboardingDialogOpen = true;
-
-    mode = mode || 'first-launch';
-    const existingApiKey = ProviderManager.getProvider('5plus1官方')?.apiKey || '';
-    if (!forceShow && existingApiKey && mode !== 'new-question') {
-        _onboardingDialogOpen = false;
-        return;
+function showOnboardingDialog() {
+    if (!document.getElementById('ai-grading-settings')) {
+        if (typeof createSettingsPanel === 'function') createSettingsPanel();
+    } else if (typeof openSettingsPanel === 'function') {
+        openSettingsPanel();
     }
-
-    ensureModalStyles();
-
-    const overlay = document.createElement('div');
-    overlay.className = 'ai-modal-overlay';
-    overlay.style.setProperty('z-index', '2147483647', 'important');
-    _onboardingOverlayEl = overlay;
-
-    let currentStep = 1;
-    let presetName = '';
-    let gradingMode = 'trial';
-    let selectedWorkflow = 'fast';
-    let detectedUnits = [];  // 检测到的小题列表
-
-    function getStepInfo() {
-        const isFirst = mode === 'first-launch';
-        const hasApiStep = isFirst;
-        // Steps: API → Name+Mode → Workflow → Context → Done
-        const apiStep = hasApiStep && currentStep === 1;
-        const nameModeStep = (hasApiStep && currentStep === 2) || (!hasApiStep && currentStep === 1);
-        const workflowStep = (hasApiStep && currentStep === 3) || (!hasApiStep && currentStep === 2);
-        const ctxStep = (hasApiStep && currentStep === 4) || (!hasApiStep && currentStep === 3);
-        const doneStep = (hasApiStep && currentStep === 5) || (!hasApiStep && currentStep === 4);
-        return { isFirst, hasApiStep, apiStep, nameModeStep, workflowStep, ctxStep, doneStep };
-    }
-
-    function render() {
-        const s = getStepInfo();
-        const title = s.apiStep ? '欢迎使用 AI 批改助手' : s.nameModeStep ? '配置方案' : s.workflowStep ? '选择批改工作流' : s.ctxStep ? '批改上下文（可选）' : '配置完成！';
-
-        overlay.innerHTML = `
-            <div class="ai-modal-card" style="max-width:520px;max-height:85vh;display:flex;flex-direction:column;">
-                <div class="ai-modal-header" style="display:flex;align-items:center;gap:10px;padding:20px 24px 12px;border-bottom:1px solid rgba(0,0,0,0.06);flex-shrink:0;">
-                    <span style="font-size:20px;">🎓</span>
-                    <span>${title}</span>
-                </div>
-                <div class="ai-modal-body" style="overflow-y:auto;flex:1;min-height:0;padding:20px 24px;">
-                    ${s.apiStep ? renderApiStep() : s.nameModeStep ? renderNameModeStep() : s.workflowStep ? renderWorkflowStep() : s.ctxStep ? renderCtxStep() : renderDoneStep()}
-                </div>
-                <div class="ai-modal-footer" style="padding:12px 24px 20px;border-top:1px solid rgba(0,0,0,0.06);flex-shrink:0;">
-                    ${s.apiStep ? `
-                        <button class="ai-modal-btn-cancel" id="ob-skip">稍后设置</button>
-                        <button class="ai-modal-btn-confirm" id="ob-next">验证并继续</button>
-                    ` : s.nameModeStep ? `
-                        ${s.hasApiStep ? '<button class="ai-modal-btn-cancel" id="ob-back">上一步</button>' : ''}
-                        <button class="ai-modal-btn-confirm" id="ob-next">继续</button>
-                    ` : s.workflowStep ? `
-                        <button class="ai-modal-btn-cancel" id="ob-back">上一步</button>
-                        <button class="ai-modal-btn-confirm" id="ob-next">继续</button>
-                    ` : s.ctxStep ? `
-                        <button class="ai-modal-btn-cancel" id="ob-skip-ctx">跳过</button>
-                        <button class="ai-modal-btn-confirm" id="ob-next">保存并继续</button>
-                    ` : `
-                        <button class="ai-modal-btn-confirm" id="ob-start" style="flex:1;">查看配置</button>
-                    `}
-                </div>
-            </div>
-        `;
-        bindEvents();
-    }
-
-    function renderApiStep() {
-        return `
-            <p style="font-size:13px;color:#666;line-height:1.6;margin-bottom:16px;">
-                AI 批改助手可以帮助你自动批改试卷。首先，请配置你的 API 密钥。
-            </p>
-            <div class="form-group">
-                <label>API 密钥</label>
-                <input type="password" id="ob-apikey" placeholder="请输入 5plus1 API 密钥" value="${existingApiKey}" style="width:100%;">
-                <div style="margin-top:6px;">
-                    <a href="https://api.ai.five-plus-one.com/console/token" target="_blank" style="font-size:12px;color:#0052FF;text-decoration:none;">点击获取访问凭证 →</a>
-                </div>
-            </div>
-            <div id="ob-status" style="font-size:12px;padding:8px 12px;border-radius:6px;margin-top:8px;display:none;"></div>
-        `;
-    }
-
-    function renderNameModeStep() {
-        return `
-            <div class="form-group">
-                <label>配置方案名称</label>
-                <input type="text" id="ob-preset-name" placeholder="例如: 语文作文、数学大题" value="${presetName}" style="width:100%;">
-            </div>
-            <div style="margin-top:16px;">
-                <label style="display:block;margin-bottom:8px;color:#666;font-size:12px;font-weight:500;">批改模式</label>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-                    <label style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border:2px solid ${gradingMode==='normal'?'#0052FF':'rgba(0,0,0,0.08)'};border-radius:12px;cursor:pointer;transition:all 0.2s;background:${gradingMode==='normal'?'rgba(0,82,255,0.04)':'white'};text-align:center;">
-                        <input type="radio" name="ob-grading-mode" value="normal" ${gradingMode==='normal'?'checked':''} style="display:none;">
-                        <div style="font-size:20px;">📝</div>
-                        <div style="font-size:13px;font-weight:600;color:#1d1d1f;">普通</div>
-                        <div style="font-size:11px;color:#86868b;line-height:1.4;">等待确认<br>后提交</div>
-                    </label>
-                    <label style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border:2px solid ${gradingMode==='trial'?'#7c3aed':'rgba(0,0,0,0.08)'};border-radius:12px;cursor:pointer;transition:all 0.2s;background:${gradingMode==='trial'?'rgba(124,58,237,0.04)':'white'};text-align:center;position:relative;">
-                        <input type="radio" name="ob-grading-mode" value="trial" ${gradingMode==='trial'?'checked':''} style="display:none;">
-                        <span style="position:absolute;top:-8px;right:-8px;font-size:9px;background:#7c3aed;color:white;padding:2px 6px;border-radius:4px;font-weight:600;">推荐</span>
-                        <div style="font-size:20px;">🔍</div>
-                        <div style="font-size:13px;font-weight:600;color:#1d1d1f;">试改</div>
-                        <div style="font-size:11px;color:#86868b;line-height:1.4;">支持纠错<br>和优化</div>
-                    </label>
-                    <label style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border:2px solid ${gradingMode==='unattended'?'#D93025':'rgba(0,0,0,0.08)'};border-radius:12px;cursor:pointer;transition:all 0.2s;background:${gradingMode==='unattended'?'rgba(217,48,37,0.04)':'white'};text-align:center;">
-                        <input type="radio" name="ob-grading-mode" value="unattended" ${gradingMode==='unattended'?'checked':''} style="display:none;">
-                        <div style="font-size:20px;">⚡</div>
-                        <div style="font-size:13px;font-weight:600;color:#1d1d1f;">无人</div>
-                        <div style="font-size:11px;color:#86868b;line-height:1.4;">全自动<br>自动重试</div>
-                    </label>
-                </div>
-            </div>
-            <div id="ob-status" style="font-size:12px;padding:8px 12px;border-radius:6px;margin-top:8px;display:none;"></div>
-        `;
-    }
-
-    function renderWorkflowStep() {
-        const workflows = [
-            { id: 'fast', icon: '⚡', name: '快速批改（推荐）', desc: '快速低价，适合大多数题型', color: '#0052FF' },
-            { id: 'normal', icon: '🎯', name: '高精模式', desc: '响应速度较慢，消耗额度相对较高，准确度较高', color: '#1d1d1f' },
-            { id: 'dual', icon: '🔄', name: '双评模式（推荐）', desc: '兼顾准确度、速度与价格', color: '#7c3aed' }
-        ];
-        return `
-            <p style="font-size:13px;color:#666;line-height:1.6;margin-bottom:16px;">
-                选择批改工作流，决定使用哪个 AI 模型进行评分。
-            </p>
-            <div style="display:flex;flex-direction:column;gap:10px;">
-                ${workflows.map(w => `
-                    <label style="display:flex;align-items:center;gap:14px;padding:16px;border:2px solid ${selectedWorkflow===w.id?w.color:'rgba(0,0,0,0.08)'};border-radius:12px;cursor:pointer;transition:all 0.2s;background:${selectedWorkflow===w.id?w.color+'08':'white'};">
-                        <input type="radio" name="ob-workflow" value="${w.id}" ${selectedWorkflow===w.id?'checked':''} style="display:none;">
-                        <div style="width:40px;height:40px;border-radius:10px;background:${selectedWorkflow===w.id?w.color:'rgba(0,0,0,0.06)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:all 0.2s;">
-                            ${w.icon}
-                        </div>
-                        <div style="flex:1 1 auto;min-width:0;">
-                            <div style="font-size:14px;font-weight:600;color:#1d1d1f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${w.name}</div>
-                            <div style="font-size:12px;color:#86868b;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${w.desc}</div>
-                        </div>
-                        <div style="width:20px;height:20px;border-radius:50%;border:2px solid ${selectedWorkflow===w.id?w.color:'rgba(0,0,0,0.15)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;">
-                            ${selectedWorkflow===w.id?`<div style="width:10px;height:10px;border-radius:50%;background:${w.id==='fast'?'#0052FF':w.id==='normal'?'#1d1d1f':'#7c3aed'};"></div>`:''}
-                        </div>
-                    </label>
-                `).join('')}
-            </div>
-        `;
-    }
-
-    function renderCtxStep() {
-        // 尝试检测页面小题
-        detectedUnits = [];
-        try {
-            var adapter = window.__AI_MARKER_ADAPTER__;
-            if (adapter && typeof adapter.getScoreInputs === 'function') {
-                var inputs = adapter.getScoreInputs();
-                if (inputs.length > 0) {
-                    detectedUnits = inputs.map(function (inp, i) {
-                        return { label: inp.label || ('第' + (i + 1) + '题'), maxScore: inp.maxScore || '' };
-                    });
-                }
-            }
-        } catch (e) { /* ignore */ }
-
-        var unitsHtml = '';
-        if (detectedUnits.length > 0) {
-            unitsHtml = '<div class="form-group" style="margin-top:12px;">' +
-                '<label style="font-weight:600;">检测到 ' + detectedUnits.length + ' 个小题</label>' +
-                '<div id="ob-units-list" style="margin-top:6px;">' +
-                detectedUnits.map(function (u, i) {
-                    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
-                        '<span style="flex:1;font-size:13px;color:#1a1a1a;">' + escapeSettingsHtml(u.label) + '</span>' +
-                        '<input type="number" class="ob-unit-score" data-index="' + i + '" placeholder="满分" min="0" step="1" value="' + (u.maxScore || '') + '" style="width:80px;padding:4px 8px;border:1px solid rgba(0,0,0,0.1);border-radius:6px;font-size:13px;">' +
-                        '<span style="font-size:12px;color:#888;">分</span>' +
-                        '</div>';
-                }).join('') +
-                '</div>' +
-                '<div style="font-size:11px;color:#888;margin-top:4px;">请填写每个小题的满分值</div>' +
-                '</div>';
-        }
-
-        return '<p style="font-size:13px;color:#666;line-height:1.6;margin-bottom:16px;">' +
-            '配置批改上下文可以提高评分准确性。点击下方区域可打开 Markdown 编辑器（支持公式和图片）。' +
-            '</p>' +
-            '<div class="form-group">' +
-            '<label>题目内容</label>' +
-            '<div class="md-preview-container ob-md-field" data-field="question"><div class="md-preview-content"></div><button class="md-edit-btn" data-field="question" data-label="题目内容">编辑</button></div>' +
-            '</div>' +
-            '<div class="form-group">' +
-            '<label>参考答案</label>' +
-            '<div class="md-preview-container ob-md-field" data-field="answer"><div class="md-preview-content"></div><button class="md-edit-btn" data-field="answer" data-label="参考答案">编辑</button></div>' +
-            '</div>' +
-            '<div class="form-group">' +
-            '<label>评分标准</label>' +
-            '<div class="md-preview-container ob-md-field" data-field="rubric"><div class="md-preview-content"></div><button class="md-edit-btn" data-field="rubric" data-label="评分标准">编辑</button></div>' +
-            '</div>' +
-            unitsHtml;
-    }
-
-    function renderDoneStep() {
-        const wfName = { fast: '快速批改', normal: '普通批改', dual: '双评模式' }[selectedWorkflow] || '快速批改';
-        const modeName = { normal: '普通模式', trial: '试改模式', unattended: '无人模式' }[gradingMode] || '试改模式';
-        return `
-            <div style="text-align:center;padding:20px 0;">
-                <div style="font-size:48px;margin-bottom:16px;">✅</div>
-                <div style="font-size:16px;font-weight:600;color:#1d1d1f;margin-bottom:8px;">配置完成！</div>
-                <div style="font-size:13px;color:#666;line-height:1.8;">
-                    方案「${presetName}」已创建并绑定到当前试题。<br>
-                    <span style="color:#1d1d1f;font-weight:500;">${wfName}</span> · <span style="color:#1d1d1f;font-weight:500;">${modeName}</span>
-                </div>
-                <div style="margin-top:16px;padding:12px;background:rgba(0,82,255,0.06);border-radius:10px;font-size:12px;color:#0052FF;">
-                    点击下方按钮查看配置详情
-                </div>
-            </div>
-        `;
-    }
-
-    function bindEvents() {
-        const s = getStepInfo();
-
-        if (s.apiStep) {
-            overlay.querySelector('#ob-skip').onclick = () => { _onboardingDialogOpen = false; overlay.remove(); };
-            overlay.querySelector('#ob-next').onclick = async () => {
-                const key = overlay.querySelector('#ob-apikey').value.trim();
-                if (!key) { showStatus('请输入 API 密钥', 'error'); return; }
-
-                // 清除之前的错误提示
-                const statusEl = overlay.querySelector('#ob-status');
-                if (statusEl) statusEl.style.display = 'none';
-
-                const btn = overlay.querySelector('#ob-next');
-                btn.disabled = true;
-                btn.innerHTML = '<span class="upd-spinner-light"></span> 验证中...';
-
-                // 确保 spinner 样式存在（浅色版本用于深色背景）
-                if (!document.getElementById('upd-spinner-light-style')) {
-                    const s = document.createElement('style');
-                    s.id = 'upd-spinner-light-style';
-                    s.textContent = '.upd-spinner-light{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.3);border-top-color:#ffffff;border-radius:50%;animation:upd-spin .6s linear infinite;vertical-align:middle;margin-right:4px}@keyframes upd-spin{to{transform:rotate(360deg)}}';
-                    document.head.appendChild(s);
-                }
-
-                const result = await testApiKey(key);
-                btn.disabled = false; btn.textContent = '验证并继续';
-                if (result.success) {
-                    const p = ProviderManager.getProvider('5plus1官方');
-                    if (p) p.apiKey = key;
-                    ProviderManager.save();
-                    currentStep++; render();
-                } else if (result.reason === 'invalid') {
-                    showStatus('密钥无效，请检查是否正确', 'error');
-                } else {
-                    showStatus('网络连接失败，请检查网络后重试', 'error');
-                }
-            };
-        } else if (s.nameModeStep) {
-            if (s.hasApiStep) overlay.querySelector('#ob-back').onclick = () => { currentStep--; render(); };
-            overlay.querySelectorAll('input[name="ob-grading-mode"]').forEach(r => {
-                r.onchange = () => { gradingMode = r.value; render(); };
-            });
-            overlay.querySelector('#ob-next').onclick = () => {
-                const name = overlay.querySelector('#ob-preset-name')?.value?.trim();
-                if (!name) { showStatus('请输入配置方案名称', 'error'); return; }
-                if (PresetManager.data.list[name]) { showStatus('该方案名称已存在', 'error'); return; }
-                presetName = name;
-                currentStep++; render();
-            };
-        } else if (s.workflowStep) {
-            overlay.querySelector('#ob-back').onclick = () => { currentStep--; render(); };
-            overlay.querySelectorAll('input[name="ob-workflow"]').forEach(r => {
-                r.onchange = () => { selectedWorkflow = r.value; render(); };
-            });
-            overlay.querySelector('#ob-next').onclick = () => { currentStep++; render(); };
-        } else if (s.ctxStep) {
-            // 初始化 OOBE 的 Markdown 数据
-            if (!window.__aiMarkdownData) window.__aiMarkdownData = {};
-
-            // Markdown 编辑容器点击事件
-            overlay.querySelectorAll('.ob-md-field').forEach(function (container) {
-                container.onclick = function () {
-                    var btn = container.querySelector('.md-edit-btn');
-                    var field = btn ? btn.getAttribute('data-field') : null;
-                    var label = btn ? btn.getAttribute('data-label') || field : '';
-                    if (!field) return;
-                    var fieldData = window.__aiMarkdownData[field] || { text: '', images: [], format: 'plain' };
-                    if (typeof openMarkdownEditor === 'function') {
-                        // 构建 callConfig（复用 ProviderManager 中已保存的 API Key）
-                        var _callConfig = null;
-                        try {
-                            var _wfId = selectedWorkflow || 'fast';
-                            var _wf = typeof WorkflowManager !== 'undefined' ? WorkflowManager.getWorkflow(_wfId) : null;
-                            if (_wf) {
-                                var _pName = _wf.model?.provider || (typeof ProviderManager !== 'undefined' ? ProviderManager.data.activeProvider : '');
-                                var _mName = _wf.model?.model || (typeof ProviderManager !== 'undefined' ? ProviderManager.data.activeModel : '');
-                                var _prov = typeof ProviderManager !== 'undefined' ? ProviderManager.getProvider(_pName) : null;
-                                _callConfig = { endpoint: _prov?.endpoint || '', apiKey: _prov?.apiKey || '', model: _mName, reasoningEffort: _wf.model?.reasoningEffort || '' };
-                            }
-                        } catch (e) { /* ignore */ }
-                        openMarkdownEditor({
-                            field: field, label: label,
-                            initialText: fieldData.text, initialImages: fieldData.images,
-                            callConfig: _callConfig,
-                            onConfirm: function (newText, newImages) {
-                                window.__aiMarkdownData[field] = { text: newText, images: newImages, format: 'markdown' };
-                                // 直接更新 OOBE overlay 内的预览（避免与设置面板的同名 ID 冲突）
-                                var previewEl = container.querySelector('.md-preview-content');
-                                if (previewEl) {
-                                    if (window.__aiMarkdownRenderer && newText) {
-                                        var resolved = typeof resolveMarkdownImages === 'function' ? resolveMarkdownImages(newText, newImages || []) : newText;
-                                        previewEl.innerHTML = window.__aiMarkdownRenderer.render(resolved);
-                                    } else if (newText) {
-                                        previewEl.textContent = newText;
-                                    } else {
-                                        previewEl.innerHTML = '<span class="md-placeholder">点击编辑</span>';
-                                    }
-                                }
-                            },
-                        });
-                    }
-                };
-            });
-
-            overlay.querySelector('#ob-skip-ctx').onclick = function () { saveAndFinish(false); };
-            overlay.querySelector('#ob-next').onclick = function () { saveAndFinish(true); };
-        } else if (s.doneStep) {
-            overlay.querySelector('#ob-start').onclick = () => {
-                _onboardingDialogOpen = false;
-                overlay.remove();
-                GM_setValue('ai-grading-show-onboarding', false);
-                setTimeout(() => openSettingsPanel(), 300);
-            };
-        }
-    }
-
-    function showStatus(msg, type) {
-        const el = overlay.querySelector('#ob-status');
-        if (!el) return;
-        el.style.display = 'block';
-        el.style.background = type === 'error' ? 'rgba(217,48,37,0.08)' : 'rgba(52,168,83,0.08)';
-        el.style.color = type === 'error' ? '#D93025' : '#34A853';
-        el.textContent = msg;
-    }
-
-    async function testApiKey(key) {
-        const MAX_RETRIES = 2;
-        const TIMEOUT = 30000;
-
-        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-            console.log(`🔑 [诊断] API 密钥验证 — 第 ${attempt}/${MAX_RETRIES} 次尝试`);
-            const result = await new Promise(resolve => {
-                GM_xmlhttpRequest({
-                    method: 'POST', url: SCRIPT_CONFIG.DEFAULT_ENDPOINT,
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-                    data: JSON.stringify({ model: 'aimarker-fast', messages: [{ role: 'system', content: '只回复"收到"两个字' }, { role: 'user', content: 'test' }], max_tokens: 5 }),
-                    timeout: TIMEOUT,
-                    onload: res => {
-                        console.log(`🔑 [诊断] API 响应 — HTTP ${res.status}, 长度: ${res.responseText?.length || 0}`);
-                        resolve({ ok: res.status >= 200 && res.status < 300, type: 'http', status: res.status });
-                    },
-                    onerror: e => {
-                        console.warn(`🔑 [诊断] 网络错误:`, e);
-                        resolve({ ok: false, type: 'network' });
-                    },
-                    ontimeout: () => {
-                        console.warn(`🔑 [诊断] 请求超时 (${TIMEOUT}ms)`);
-                        resolve({ ok: false, type: 'timeout' });
-                    }
-                });
-            });
-
-            if (result.ok) {
-                console.log('✅ [诊断] API 密钥验证成功');
-                return { success: true };
-            }
-
-            if (result.type === 'timeout') {
-                showStatus(`验证超时，正在重试 (${attempt}/${MAX_RETRIES})...`, 'error');
-            } else if (result.type === 'network') {
-                showStatus(`网络错误，正在重试 (${attempt}/${MAX_RETRIES})...`, 'error');
-            } else {
-                // HTTP 错误，不重试
-                console.error(`❌ [诊断] API 返回 HTTP ${result.status}`);
-                return { success: false, reason: 'invalid' };
-            }
-
-            if (attempt < MAX_RETRIES) {
-                await new Promise(r => setTimeout(r, 2000));
-            }
-        }
-
-        return { success: false, reason: 'network' };
-    }
-
-    function saveAndFinish(saveCtx) {
-        var emptyField = { text: '', images: [], format: 'markdown' };
-        var mdData = window.__aiMarkdownData || {};
-        const newPreset = {
-            question: saveCtx ? (mdData.question || emptyField) : emptyField,
-            answer: saveCtx ? (mdData.answer || emptyField) : emptyField,
-            rubric: saveCtx ? (mdData.rubric || emptyField) : emptyField,
-            workflowId: selectedWorkflow, gradingMode: gradingMode,
-            scoring: { roundStep: 1, roundMethod: 'round' }
-        };
-
-        // 保存小题数据（如果检测到）
-        if (saveCtx) {
-            var unitEls = overlay.querySelectorAll('.ob-unit-score');
-            if (unitEls.length > 0) {
-                var units = [];
-                unitEls.forEach(function (inp, i) {
-                    var label = detectedUnits[i] ? detectedUnits[i].label : ('第' + (i + 1) + '题');
-                    var maxScore = parseFloat(inp.value) || 0;
-                    units.push({ label: label, maxScore: maxScore, index: i, roundStep: 1 });
-                });
-                newPreset.scoring.units = units;
-                newPreset.scoring.maxScore = units.reduce(function (sum, u) { return sum + (u.maxScore || 0); }, 0);
-            }
-        }
-        PresetManager.data.list[presetName] = newPreset;
-        PresetManager.data.active = presetName;
-        PresetManager.data.bindings[PresetManager.getTaskIdentifier()] = presetName;
-        PresetManager.save();
-        WorkflowManager.setActive(selectedWorkflow);
-        // 确保设置面板已创建（可能从非阅卷页面触发引导，面板尚未创建）
-        if (!document.getElementById('ai-grading-settings')) {
-            createMainButton();
-            createSettingsPanel();
-        }
-        renderPresetDropdown();
-        fillFormFromActivePreset();
-        currentStep = mode === 'first-launch' ? 5 : 4;
-        render();
-    }
-
-    getUIRoot().appendChild(overlay);
-    render();
+    if (typeof showToast === 'function') showToast('请在设置中配置 API 密钥和批改方案');
 }
 
 // ========== 余额不足提示 ==========
