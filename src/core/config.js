@@ -3,7 +3,7 @@
 
 const SCRIPT_CONFIG = {
     /** 当前脚本版本号，修改此处即可同步更新所有引用 */
-    VERSION: '1.21.18.9',
+    VERSION: '1.21.18.10',
 
     /** 轻量级更新检查 UL（优先使用，~1KB）—— stable 渠道默认值 */
     MANIFEST_URL: 'https://auto-update.aimarking.five-plus-one.com/ota/manifest.json',
@@ -44,6 +44,9 @@ const SCRIPT_CONFIG = {
      * 运行时从远端 manifest.json 加载，此处作为构建时的数据源
      */
     CHANGELOG: {
+        '1.21.18.10': [
+            '【优化】爱多分阅完本题最后一份并提交后，自动点击继续阅本题，不点阅下一道题',
+        ],
         '1.21.18.9': [
             '【优化】去掉官方自动更新、关于页的外链和更新日志，以及首次使用分步引导；请直接在设置中填写密钥和方案',
         ],

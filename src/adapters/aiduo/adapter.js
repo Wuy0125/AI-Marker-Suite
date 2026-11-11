@@ -385,6 +385,13 @@ const AiduoAdapter = {
             this._removeTimerGuard();
         }
         console.log('[爱多分] 已点击「提交分数」');
+        try {
+            if (typeof AiduoProgress !== 'undefined' && AiduoProgress && typeof AiduoProgress.noteSubmitted === 'function') {
+                AiduoProgress.noteSubmitted();
+            }
+        } catch (e) {
+            console.warn('[爱多分] 进度监视失败', e);
+        }
         return true;
     },
 
@@ -449,6 +456,9 @@ const AiduoAdapter = {
 
     onGradingEnd() {
         try { AiduoScanLine.stop(); } catch (e) { console.warn('[爱多分] 扫描线停止失败', e); }
+        try {
+            if (typeof AiduoProgress !== 'undefined' && AiduoProgress) AiduoProgress.stop();
+        } catch (e) { console.warn('[爱多分] 进度监视停止失败', e); }
     },
 
     _pauseIfUnsafe() {
@@ -755,6 +765,7 @@ const AiduoAdapter = {
             window.addEventListener('popstate', watch);
             window.addEventListener('pagehide', () => {
                 try { AiduoScanLine.stop(); } catch (e) { /* 页面正在卸载 */ }
+                try { if (typeof AiduoProgress !== 'undefined' && AiduoProgress) AiduoProgress.stop(); } catch (e) { /* ignore */ }
             });
         }
         if (typeof window.setInterval === 'function') window.setInterval(watch, 1000);

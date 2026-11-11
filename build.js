@@ -163,6 +163,7 @@ const BUILD_CONFIGS = [
             'adapters/ruiya/adapter.js',
             'adapters/aiduo/selectors.js',
             'adapters/aiduo/scan-line.js',
+            'adapters/aiduo/progress-monitor.js',
             'adapters/aiduo/adapter.js',
         ],
         header: {
